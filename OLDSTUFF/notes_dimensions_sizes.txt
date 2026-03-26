@@ -1,0 +1,10 @@
+Lambda is of size m x H
+Delta is of size m x H
+Eta is of size H x T
+y is of size T x m
+
+i = 1, ..., m
+t = 1, ..., T
+j = 1, ..., H
+
+
