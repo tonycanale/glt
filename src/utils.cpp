@@ -8,33 +8,6 @@ namespace {
 // HELPER UTILITIES for parsing and state management
 // ============================================================================
 
-//' Parse an integer scalar from a named list entry
-int get_int(const Rcpp::List& x, const char* name) {
-  SEXP obj = x[name];
-  if (obj == R_NilValue) {
-    Rcpp::stop("Missing entry `%s`.", name);
-  }
-  return Rcpp::as<int>(obj);
-}
-
-//' Parse a double scalar from a named list entry
-double get_double(const Rcpp::List& x, const char* name) {
-  SEXP obj = x[name];
-  if (obj == R_NilValue) {
-    Rcpp::stop("Missing entry `%s`.", name);
-  }
-  return Rcpp::as<double>(obj);
-}
-
-//' Parse a bool scalar from a named list entry
-bool get_bool(const Rcpp::List& x, const char* name) {
-  SEXP obj = x[name];
-  if (obj == R_NilValue) {
-    Rcpp::stop("Missing entry `%s`.", name);
-  }
-  return Rcpp::as<bool>(obj);
-}
-
 //' Compute marginal likelihood for a single row i of Delta
 //' 
 //' Matches OLDSTUFF/aux.R::marg.lik.i

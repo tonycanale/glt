@@ -13,12 +13,15 @@ Delta <- matrix(as.integer(Lambda != 0),m,H)
 Delta
 y <- t(Lambda%*% Eta)  + matrix(rnorm(T*m,sd = 0.2),T,m)
 nu <- .5
+
 source("aux.R")
 source("update.H.R")
-
 updH.step <- update.H(y, Delta, Eta, hyperpar, nu, q = 0.5)
 H <- ncol(Delta)
 nu <- rbeta(1, hyperpar$a_nu+H, hyperpar$b_nu+m-H)
+
+
+
 
 source("update.pivots.R")
 Bad_Delta <- rbind(matrix(0,3,5),diag(1,5),matrix(1,2,5))

@@ -41,8 +41,9 @@ double marg_lik_i(
       inner_mat(j, j) += 1.0 / kappa;
     }
     
-    double det_val;
-    arma::log_det(det_val, arma::inv(inner_mat));
+    double det_val, det_sign;
+    arma::log_det(det_val, det_sign, inner_mat);  // log|inner_mat|
+    det_val = -det_val;                            // log|inner_mat^{-1}|
     arma::mat inner_mat_inv = arma::inv(inner_mat);
     
     double Qi = 0.5 * as_scalar(yi.t() * yi - yi.t() * eta * inner_mat_inv * eta.t() * yi);

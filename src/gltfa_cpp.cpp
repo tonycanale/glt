@@ -83,7 +83,7 @@ Rcpp::List gltfa_cpp(
   //   Eta    : H x T
   //   y      : T x m
   // ---------------------------------------------------------------------------
-  const int H = get_int(init, "H");
+  int H = get_int(init, "H");
 
   if (H < 0) {
     Rcpp::stop("`init$H` must be nonnegative.");
@@ -215,7 +215,6 @@ Rcpp::List gltfa_cpp(
       int H_old = H;
       H = Delta.n_cols;
       bool H_accepted = Rcpp::as<bool>(H_step["accepted"]);
-      int H_increased = Rcpp::as<int>(H_step["increased"]);
       
       // Store accept indicator
       accept(iter, 0) = H_accepted ? 1 : 0;
