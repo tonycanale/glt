@@ -5,113 +5,7 @@
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-namespace {
 
-// Parse an integer scalar from a named list entry
-int get_int(const Rcpp::List& x, const char* name) {
-  SEXP obj = x[name];
-  if (obj == R_NilValue) {
-    Rcpp::stop("Missing entry `%s`.", name);
-  }
-  return Rcpp::as<int>(obj);
-}
-
-// Parse a double scalar from a named list entry
-double get_double(const Rcpp::List& x, const char* name) {
-  SEXP obj = x[name];
-  if (obj == R_NilValue) {
-    Rcpp::stop("Missing entry `%s`.", name);
-  }
-  return Rcpp::as<double>(obj);
-}
-
-// Parse a bool scalar from a named list entry
-bool get_bool(const Rcpp::List& x, const char* name) {
-  SEXP obj = x[name];
-  if (obj == R_NilValue) {
-    Rcpp::stop("Missing entry `%s`.", name);
-  }
-  return Rcpp::as<bool>(obj);
-}
-
-// Build a simple default state when H = 0 or when init pieces are NULL
-Rcpp::List make_last_state(
-    int H,
-    int T,
-    int m,
-    SEXP nu_,
-    SEXP ell_,
-    SEXP tau_,
-    SEXP Delta_,
-    SEXP Lambda_,
-    SEXP Eta_,
-    SEXP sigma2_) {
-
-  Rcpp::IntegerVector ell;
-  Rcpp::NumericVector tau;
-  arma::imat Delta;
-  arma::mat Lambda;
-  arma::mat Eta;
-  Rcpp::NumericVector sigma2;
-
-  if (ell_ == R_NilValue) {
-    ell = Rcpp::IntegerVector(H);
-  } else {
-    ell = Rcpp::as<Rcpp::IntegerVector>(ell_);
-  }
-
-  if (tau_ == R_NilValue) {
-    tau = Rcpp::NumericVector(H);
-  } else {
-    tau = Rcpp::as<Rcpp::NumericVector>(tau_);
-  }
-
-  if (Delta_ == R_NilValue) {
-    Delta = arma::imat(m, H, arma::fill::zeros);
-  } else {
-    Delta = Rcpp::as<arma::imat>(Delta_);
-  }
-
-  if (Lambda_ == R_NilValue) {
-    Lambda = arma::mat(m, H, arma::fill::zeros);
-  } else {
-    Lambda = Rcpp::as<arma::mat>(Lambda_);
-  }
-
-  if (Eta_ == R_NilValue) {
-    Eta = arma::mat(H, T, arma::fill::zeros);
-  } else {
-    Eta = Rcpp::as<arma::mat>(Eta_);
-  }
-
-  if (sigma2_ == R_NilValue) {
-    sigma2 = Rcpp::NumericVector(m, 1.0);
-  } else {
-    sigma2 = Rcpp::as<Rcpp::NumericVector>(sigma2_);
-  }
-
-  double nu = (nu_ == R_NilValue) ? NA_REAL : Rcpp::as<double>(nu_);
-
-  return Rcpp::List::create(
-    Rcpp::Named("H") = H,
-    Rcpp::Named("nu") = nu,
-    Rcpp::Named("ell") = ell,
-    Rcpp::Named("tau") = tau,
-    Rcpp::Named("Delta") = Delta,
-    Rcpp::Named("Lambda") = Lambda,
-    Rcpp::Named("Eta") = Eta,
-    Rcpp::Named("sigma2") = sigma2
-  );
-}
-
-} // anonymous namespace
-
-
-//' Internal Rcpp sampler stub for gltfa
-//' This is a placeholder implementation used to validate the R-to-C++
-//' interface and package compilation. The full sampler will iterate the
-//' Section 3 updates in the paper.
-//' @noRd
 // [[Rcpp::export]]
 Rcpp::List gltfa_cpp(
     const arma::mat& y,
@@ -311,8 +205,59 @@ Rcpp::List gltfa_cpp(
     for (int iter = 0; iter < niter; ++iter) {
       // ---------------------------------------------------------------------
       // STEP 1: Update H
-      // Placeholder: no update yet.
+      // Birth/death MCMC for dimension of latent factors
       // ---------------------------------------------------------------------
+      Rcpp::List H_step = update_H_cpp(y, Delta, Eta, prior, 
+                                       Rcpp::as<double>(last["nu"]), 0.5);
+      
+      Delta = Rcpp::as<arma::imat>(H_step["Delta"]);
+      Eta = Rcpp::as<arma::mat>(H_step["Eta"]);
+      int H_old = H;
+      H = Delta.n_cols;
+      bool H_accepted = Rcpp::as<bool>(H_step["accepted"]);
+      int H_increased = Rcpp::as<int>(H_step["increased"]);
+      
+      // Store accept indicator
+      accept(iter, 0) = H_accepted ? 1 : 0;
+      
+      // Update state to reflect new H, Delta, Eta
+      last["H"] = H;
+      last["Delta"] = Delta;
+      last["Eta"] = Eta;
+      
+      // Allocate/deallocate vectors that depend on H
+      if (H > H_old && H_accepted) {
+        // Birth: dimension increased, allocate new storage
+        Rcpp::IntegerVector ell = Rcpp::IntegerVector(H);
+        Rcpp::NumericVector tau = Rcpp::NumericVector(H);
+        arma::mat Lambda_old = Rcpp::as<arma::mat>(last["Lambda"]);
+        arma::mat Lambda(m, H, arma::fill::zeros);
+        for (int j = 0; j < H_old; ++j) {
+          Lambda.col(j) = Lambda_old.col(j);
+        }
+        last["ell"] = ell;
+        last["tau"] = tau;
+        last["Lambda"] = Lambda;
+      } else if (H < H_old && H_accepted) {
+        // Death: dimension decreased, shrink storage
+        Rcpp::IntegerVector ell_old = Rcpp::as<Rcpp::IntegerVector>(last["ell"]);
+        Rcpp::NumericVector tau_old = Rcpp::as<Rcpp::NumericVector>(last["tau"]);
+        arma::mat Lambda_old = Rcpp::as<arma::mat>(last["Lambda"]);
+        
+        Rcpp::IntegerVector ell = Rcpp::IntegerVector(H);
+        Rcpp::NumericVector tau = Rcpp::NumericVector(H);
+        arma::mat Lambda(m, H, arma::fill::zeros);
+        for (int j = 0; j < H; ++j) {
+          ell[j] = ell_old[j];
+          tau[j] = tau_old[j];
+          Lambda.col(j) = Lambda_old.col(j);
+        }
+        last["ell"] = ell;
+        last["tau"] = tau;
+        last["Lambda"] = Lambda;
+      }
+
+      // ...existing code...
 
       // ---------------------------------------------------------------------
       // STEP 2: Update nu

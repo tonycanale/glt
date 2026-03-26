@@ -1,0 +1,69 @@
+# =========================
+
+# OS / System files
+
+# =========================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# =========================
+
+# R / RStudio
+
+# =========================
+
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+
+# Packrat / renv (keep lockfile, ignore library)
+
+renv/library/
+packrat/lib/
+
+# =========================
+
+# LaTeX (build artifacts)
+
+# =========================
+
+*.aux
+*.bbl
+*.blg
+*.brf
+*.fls
+*.fdb_latexmk
+*.log
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+
+# Latexmk
+
+latexmkrc
+
+# =========================
+
+# Logs & temporary files
+
+# =========================
+
+*.log
+*.tmp
+*.swp
+*~
+
+# =========================
+
+# VS Code / Positron
+
+# =========================
+
+.vscode/
