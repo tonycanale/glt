@@ -57,4 +57,5 @@ check_proposal_plot <- function(Delta, Deltastar){
   Deltastplot <- Deltastar
   diag(Deltastplot[ellstar,]) <- 2
   image(1:Hstar,1:m, t(Deltastplot)[,m:1])
+  par(mfrow=c(1,1))
 }

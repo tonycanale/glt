@@ -2,6 +2,7 @@
 #include "helpers.h"
 #include "marglik.h"
 #include "update_H.h"
+#include "update.pivots.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -256,23 +257,46 @@ Rcpp::List gltfa_cpp(
         last["Lambda"] = Lambda;
       }
 
-      // ...existing code...
+      // State views for this iteration
+      Rcpp::IntegerVector ell = Rcpp::as<Rcpp::IntegerVector>(last["ell"]);
+      Rcpp::NumericVector tau = Rcpp::as<Rcpp::NumericVector>(last["tau"]);
+      arma::mat Lambda = Rcpp::as<arma::mat>(last["Lambda"]);
+      Rcpp::NumericVector sigma2 = Rcpp::as<Rcpp::NumericVector>(last["sigma2"]);
+
 
       // ---------------------------------------------------------------------
       // STEP 2: Update nu
       // Placeholder: no update yet.
       // ---------------------------------------------------------------------
-
+      last["nu"] = R::rbeta(a_nu + H, b_nu + m - H);
       // ---------------------------------------------------------------------
       // STEP 3: Update pivot locations ell
-      // Placeholder: no update yet.
       // ---------------------------------------------------------------------
+      Rcpp::List pivots_step = update_pivots_cpp(y, Delta, Eta, prior);
+      Delta = Rcpp::as<arma::imat>(pivots_step["Delta"]);
+      ell = Rcpp::as<Rcpp::IntegerVector>(pivots_step["ell"]);
+      last["Delta"] = Delta;
+      last["ell"] = ell;
 
       // ---------------------------------------------------------------------
       // STEP 4: Update tau_j, j = 1, ..., H
       // Placeholder: no update yet.
       // ---------------------------------------------------------------------
+      for (int j = 0; j < H; ++j) {
+        const int ell_j = ell[j];
+        int d_j = 0;
 
+        // If ell_j is stored in R-style indexing {1, ..., m},
+        // then rows below the pivot are ell_j, ..., m - 1 in C++.
+        for (int i = ell_j; i < m; ++i) {
+          d_j += Delta(i, j);
+        }
+
+        tau[j] = R::rbeta(alpha * beta + d_j,
+                          beta + m - ell_j - d_j);
+      }
+
+      last["tau"] = tau;
       // ---------------------------------------------------------------------
       // STEP 5: Update Delta below pivots
       // Placeholder: no update yet.
@@ -293,6 +317,8 @@ Rcpp::List gltfa_cpp(
       // Placeholder: no update yet.
       // ---------------------------------------------------------------------
 
+
+      // Save draws if past burn-in and at the correct thinning interval -----
       const bool should_save =
         (iter + 1 > nburn) &&
         (((iter + 1 - nburn) % thin) == 0);

@@ -49,12 +49,12 @@ update.pivots <- function(y, Delta, Eta, hyperpar){
                             parbeta+m-ell[j]-dj,
                             ell[j]-ellstar[j])
           ## add randomly a d_a number of ones in the candidate entries
-          if((d_a>0) & (d_a<ell[j]-ellstar[j])) {
+          if((d_a>0) & (d_a< (ell[j]-ellstar[j]))) {
             new_ones <- sample((ellstar[j]+1):(ell[j]),size = d_a, 
                                replace=FALSE)
             Deltastar[new_ones,j] = 1
           }
-          if(d_a ==ell[j]-ellstar[j]) Deltastar[ell[j],j] = 1
+          if(d_a == (ell[j]-ellstar[j])) Deltastar[ell[j],j] = 1
         }
   }
   index <- which(rowSums(abs(Delta- Deltastar))!=0)

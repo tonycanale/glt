@@ -27,6 +27,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_pivots_cpp
+Rcpp::List update_pivots_cpp(const arma::mat& y, const arma::imat& Delta_in, const arma::mat& Eta, const Rcpp::List& hyperpar);
+RcppExport SEXP _gltfactor_update_pivots_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP EtaSEXP, SEXP hyperparSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::imat& >::type Delta_in(Delta_inSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Eta(EtaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type hyperpar(hyperparSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_pivots_cpp(y, Delta_in, Eta, hyperpar));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_H_cpp
 Rcpp::List update_H_cpp(const arma::mat& y, const arma::imat& Delta_in, const arma::mat& Eta_in, const Rcpp::List& hyperpar, double nu, double q);
 RcppExport SEXP _gltfactor_update_H_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP Eta_inSEXP, SEXP hyperparSEXP, SEXP nuSEXP, SEXP qSEXP) {
@@ -75,6 +89,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_gltfactor_gltfa_cpp", (DL_FUNC) &_gltfactor_gltfa_cpp, 6},
+    {"_gltfactor_update_pivots_cpp", (DL_FUNC) &_gltfactor_update_pivots_cpp, 4},
     {"_gltfactor_update_H_cpp", (DL_FUNC) &_gltfactor_update_H_cpp, 6},
     {"_gltfactor_marg_lik", (DL_FUNC) &_gltfactor_marg_lik, 6},
     {"_gltfactor_rbetabinom_cpp", (DL_FUNC) &_gltfactor_rbetabinom_cpp, 3},

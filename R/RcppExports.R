@@ -2,13 +2,19 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 gltfa_cpp <- function(y, mcmc, model, prior, init, control) {
-    .Call('_gltfactor_gltfa_cpp', PACKAGE = 'gltfactor', y, mcmc, model, prior, init, control)
+    .Call(`_gltfactor_gltfa_cpp`, y, mcmc, model, prior, init, control)
+}
+
+#' @keywords internal
+#' @noRd
+update_pivots_cpp <- function(y, Delta_in, Eta, hyperpar) {
+    .Call(`_gltfactor_update_pivots_cpp`, y, Delta_in, Eta, hyperpar)
 }
 
 #' @keywords internal
 #' @noRd
 update_H_cpp <- function(y, Delta_in, Eta_in, hyperpar, nu, q = 0.5) {
-    .Call('_gltfactor_update_H_cpp', PACKAGE = 'gltfactor', y, Delta_in, Eta_in, hyperpar, nu, q)
+    .Call(`_gltfactor_update_H_cpp`, y, Delta_in, Eta_in, hyperpar, nu, q)
 }
 
 #' Compute marginal likelihood for a single row i of Delta
@@ -35,7 +41,7 @@ NULL
 #' @keywords internal
 #' @noRd
 marg_lik <- function(index, y, Delta, Eta, hyperpar, logarithm = TRUE) {
-    .Call('_gltfactor_marg_lik', PACKAGE = 'gltfactor', index, y, Delta, Eta, hyperpar, logarithm)
+    .Call(`_gltfactor_marg_lik`, index, y, Delta, Eta, hyperpar, logarithm)
 }
 
 #' Sample from beta-binomial distribution
@@ -51,6 +57,6 @@ marg_lik <- function(index, y, Delta, Eta, hyperpar, logarithm = TRUE) {
 #' @keywords internal
 #' @noRd
 rbetabinom_cpp <- function(a, b, size) {
-    .Call('_gltfactor_rbetabinom_cpp', PACKAGE = 'gltfactor', a, b, size)
+    .Call(`_gltfactor_rbetabinom_cpp`, a, b, size)
 }
 
