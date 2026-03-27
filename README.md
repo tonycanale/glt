@@ -6,17 +6,8 @@
 
 `gltfactor` implements Bayesian factor models under a **GLT process prior** currently under develpement.
 
-## Installation
 
-Currently under development. To install from GitHub:
-
-```r
-devtools::install_github("tonycanale/glt")
-```
-
-## Development status
-
-🚧 Active development
+## Development status 🚧
 
 Current features:
 
@@ -26,4 +17,4 @@ Current features:
 
 ## Author
 
-Antonio Canale
+Antonio Canale and a bunch of AI Agents
