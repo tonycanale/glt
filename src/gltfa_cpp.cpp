@@ -3,6 +3,8 @@
 #include "marglik.h"
 #include "update_H.h"
 #include "update.pivots.h"
+#include "update_Lambda_sigma2.h"
+#include "update_Eta.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -160,11 +162,7 @@ Rcpp::List gltfa_cpp(
   // ---------------------------------------------------------------------------
   // Acceptance statistics placeholders
   // ---------------------------------------------------------------------------
-  Rcpp::List accept = Rcpp::List::create(
-    Rcpp::Named("H_birth") = NA_REAL,
-    Rcpp::Named("H_death") = NA_REAL,
-    Rcpp::Named("pivots")  = NA_REAL
-  );
+  arma::imat accept(niter, 1, arma::fill::zeros);  // column 0: H birth/death
 
   // ---------------------------------------------------------------------------
   // Main MCMC loop
@@ -202,7 +200,7 @@ Rcpp::List gltfa_cpp(
 
   if (store_draws) {
     int save_idx = 0;
-
+    // Main MCMC loop starts here -------------------------------------------
     for (int iter = 0; iter < niter; ++iter) {
       // ---------------------------------------------------------------------
       // STEP 1: Update H
@@ -262,11 +260,8 @@ Rcpp::List gltfa_cpp(
       Rcpp::NumericVector tau = Rcpp::as<Rcpp::NumericVector>(last["tau"]);
       arma::mat Lambda = Rcpp::as<arma::mat>(last["Lambda"]);
       Rcpp::NumericVector sigma2 = Rcpp::as<Rcpp::NumericVector>(last["sigma2"]);
-
-
       // ---------------------------------------------------------------------
       // STEP 2: Update nu
-      // Placeholder: no update yet.
       // ---------------------------------------------------------------------
       last["nu"] = R::rbeta(a_nu + H, b_nu + m - H);
       // ---------------------------------------------------------------------
@@ -277,7 +272,6 @@ Rcpp::List gltfa_cpp(
       ell = Rcpp::as<Rcpp::IntegerVector>(pivots_step["ell"]);
       last["Delta"] = Delta;
       last["ell"] = ell;
-
       // ---------------------------------------------------------------------
       // STEP 4: Update tau_j, j = 1, ..., H
       // Placeholder: no update yet.
@@ -304,18 +298,48 @@ Rcpp::List gltfa_cpp(
 
       // ---------------------------------------------------------------------
       // STEP 6: Update sigma_i^2, i = 1, ..., m
-      // Placeholder: no update yet.
+      // STEP 7: Update Lambda row-wise given Delta, Eta, sigma_i^2
+      //
+      // Both steps are handled jointly by update_sigma2_Lambda():
+      // for each row i the NIG conjugate update first marginalises
+      // over lambda_i to draw sigma2_i (Step 6), then draws
+      // lambda_i | sigma2_i (Step 7).
       // ---------------------------------------------------------------------
+      {
+        arma::vec sigma2_vec = Rcpp::as<arma::vec>(
+            Rcpp::NumericVector(last["sigma2"]));
+        Lambda = Rcpp::as<arma::mat>(last["Lambda"]);
 
-      // ---------------------------------------------------------------------
-      // STEP 7: Update Lambda row-wise
-      // Placeholder: no update yet.
-      // ---------------------------------------------------------------------
+        update_sigma2_Lambda(
+            y,           // T x m
+            Eta,         // H x T
+            Delta,       // m x H
+            sigma2_vec,  // m  (updated in-place)
+            Lambda,      // m x H  (updated in-place)
+            a_sigma,
+            b_sigma,
+            kappa);
+
+        last["sigma2"] = Rcpp::wrap(sigma2_vec);
+        last["Lambda"] = Lambda;
+        sigma2 = Rcpp::as<Rcpp::NumericVector>(last["sigma2"]);
+      }
 
       // ---------------------------------------------------------------------
       // STEP 8: Update Eta
-      // Placeholder: no update yet.
+      // Draw eta_t | y_t, Lambda, sigma2  for t = 1,...,T
+      // Posterior: N( V Lambda' Sigma^{-1} y_t,  V )
+      //            V = (I_H + Lambda' Sigma^{-1} Lambda)^{-1}
       // ---------------------------------------------------------------------
+      {
+        arma::vec sigma2_vec = Rcpp::as<arma::vec>(
+            Rcpp::NumericVector(last["sigma2"]));
+        Lambda = Rcpp::as<arma::mat>(last["Lambda"]);
+
+        update_Eta(y, Lambda, sigma2_vec, Eta);
+
+        last["Eta"] = Eta;
+      }
 
 
       // Save draws if past burn-in and at the correct thinning interval -----

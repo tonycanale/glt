@@ -225,7 +225,12 @@ gltfa_process_prior <- function(prior) {
 
   prior <- utils::modifyList(defaults, prior)
 
-  req_names <- names(defaults)
+  # Aliases: marg_lik / update_pivots_cpp use short names a_s / b_s
+  # while gltfa_cpp uses a_sigma / b_sigma. Keep both in sync.
+  prior$a_s <- prior$a_sigma
+  prior$b_s <- prior$b_sigma
+
+  req_names <- c(names(defaults), "a_s", "b_s")
   bad_names <- setdiff(names(prior), req_names)
   if (length(bad_names) > 0L) {
     stop(

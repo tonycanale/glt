@@ -8,12 +8,23 @@
 source("OLDSTUFF/aux.R")
 source("OLDSTUFF/update.pivots.R")
 
-# Silence the plotting side effect in the old reference implementation.
-check_proposal_plot <- function(Delta, Deltastar) {
-  invisible(NULL)
+update.pivots.new <- function(y, Delta, Eta, hyperpar) {
+  Delta_int <- Delta
+  storage.mode(Delta_int) <- "integer"
+
+  out <- update_pivots_cpp(
+    y = y,
+    Delta_in = Delta_int,
+    Eta = Eta,
+    hyperpar = hyperpar
+  )
+  check_proposal_plot(Delta_int, out$Delta)
+  out
 }
 
-update.pivots.new <- getFromNamespace("update.pivots.new", "gltfactor")
+# Silence the plotting side effect in the old reference implementation.à
+check_proposal_plot <- function(Delta, Deltastar) {
+  invisible(NULL)}
 
 hyperpar <- list(alpha = 2, beta = 1, kappa = 1, sigma = 1, a_s = 1, b_s = 1,
                  a_nu = 2, b_nu = 2)
@@ -66,3 +77,12 @@ cat("\n=== Monte Carlo rates over", N, "draws ===\n")
 cat("Change rate      — ref:", mean(results["ref_changed", ]),
     " new:", mean(results["new_changed", ]), "\n")
 cat("Exact Delta match:", mean(results["exact_match", ]), "\n")
+
+
+## looppino di tony
+
+for(ite in 1:20)
+{
+  cat(ite)
+  Delta <- update.pivots.new(y, Delta, Eta, hyperpar)$Delta
+}
