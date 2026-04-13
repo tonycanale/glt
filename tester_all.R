@@ -1,23 +1,51 @@
 devtools::load_all("/Users/antonio/Dropbox/1_Ricerca/SylviaFS/R/gltfactor", quiet = TRUE)
 
 set.seed(1)
-T <- 50; m <- 4; H <- 2
-Lambda_true <- matrix(c(1,0, 0.8,0, 0.6,0.9, 0,1), nrow=m, ncol=H, byrow=TRUE)
+T <- 50; m <- 6; H <- 3
+Lambda_true <- matrix(c(1,0, 0, 
+                      0.6,0.9, 0,
+                         0.8,0.2, 0,
+                         0.4,0, 1,
+                         0, -0.6, -0.8, 
+                         0, 0.1, 0.2), nrow=m, ncol=H, byrow=TRUE)
 Eta_true    <- matrix(rnorm(H*T), H, T)
 sigma2_true <- rep(0.5, m)
 y <- t(Lambda_true %*% Eta_true) +
      matrix(rnorm(T*m, sd=sqrt(sigma2_true)), T, m, byrow=TRUE)
-Delta <- matrix(c(1L,0L, 1L,0L, 1L,1L, 0L,1L), nrow=m, ncol=H, byrow=TRUE)
+Delta <- matrix(as.integer(Lambda_true != 0), m, H)
 
 prior_full <- list(a_nu=1, b_nu=1, alpha=1, beta=1,
                    kappa=10, a_sigma=2, b_sigma=1, a_s=2, b_s=1)
 
 fit <- gltfa_cpp(
   y       = y,
-  mcmc    = list(niter=50, nburn=25, thin=1, nsave=25),
+  mcmc    = list(niter=5000, nburn=1000, thin=2),
   model   = list(T=T, m=m, Hmax=5L),
   prior   = prior_full,
-  init    = list(H=H, nu=0.5, ell=c(1L,3L), tau=c(0.5,0.5),
+  init    = list(H=H, nu=0.5, ell=c(1,2,3), tau=c(0.5,0.5, 0.5),
+                 Delta=Delta, Lambda=Lambda_true,
+                 Eta=Eta_true, sigma2=sigma2_true),
+  control = list(store_draws=TRUE, store_eta=TRUE,
+                 print_every=25L, verbose=FALSE, seed=1L)
+)
+
+fit <- gltfa_cpp(
+  y       = y,
+  mcmc    = list(niter=5000, nburn=1000, thin=2),
+  model   = list(T=T, m=m, Hmax=5L),
+  prior   = prior_full,
+  init    = list(H=H, nu=0.5, ell=c(1,2,3), tau=c(0.5,0.5, 0.5),
+                 Delta=Delta, Lambda=Lambda_true,
+                 Eta=Eta_true, sigma2=sigma2_true),
+  control = list(store_draws=TRUE, store_eta=TRUE,
+                 print_every=25L, verbose=FALSE, seed=1L)
+)
+fit <- gltfa_cpp(
+  y       = y,
+  mcmc    = list(niter=5000, nburn=1000, thin=2),
+  model   = list(T=T, m=m, Hmax=5L),
+  prior   = prior_full,
+  init    = list(H=H, nu=0.5, ell=c(1,2,3), tau=c(0.5,0.5, 0.5),
                  Delta=Delta, Lambda=Lambda_true,
                  Eta=Eta_true, sigma2=sigma2_true),
   control = list(store_draws=TRUE, store_eta=TRUE,

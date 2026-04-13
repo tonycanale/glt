@@ -204,6 +204,10 @@ gltfa_process_mcmc <- function(mcmc) {
     )
   }
 
+  # nsave is validated here but NOT passed to gltfa_cpp — the C++ function
+  # derives it internally as (niter - nburn) %/% thin.
+  mcmc$nsave <- NULL
+
   mcmc
 }
 

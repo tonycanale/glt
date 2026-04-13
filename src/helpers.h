@@ -114,10 +114,9 @@ inline double log_post_odds_ij(
   Delta_one (i_1based - 1, j_0based) = 1;
 
   Rcpp::IntegerVector idx = Rcpp::IntegerVector::create(i_1based);
-  const double ll_one  = Rcpp::as<double>(
-      marg_lik(idx, y, Delta_one,  Eta, hyperpar)[0]);
-  const double ll_zero = Rcpp::as<double>(
-      marg_lik(idx, y, Delta_zero, Eta, hyperpar)[0]);
+  // marg_lik returns NumericVector; [0] gives a double directly — no Rcpp::as<> needed
+  const double ll_one  = marg_lik(idx, y, Delta_one,  Eta, hyperpar)[0];
+  const double ll_zero = marg_lik(idx, y, Delta_zero, Eta, hyperpar)[0];
 
   const double log_prior_odds =
       std::log(tau[j_0based]) - std::log(1.0 - tau[j_0based]);

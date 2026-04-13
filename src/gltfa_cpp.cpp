@@ -37,7 +37,9 @@ Rcpp::List gltfa_cpp(
   const int niter = get_int(mcmc, "niter");
   const int nburn = get_int(mcmc, "nburn");
   const int thin  = get_int(mcmc, "thin");
-  const int nsave = get_int(mcmc, "nsave");
+  // nsave is derived, not supplied: (niter - nburn) / thin.
+  // Integer division is intentional.
+  const int nsave = (niter - nburn) / thin;
 
   // ---------------------------------------------------------------------------
   // Prior hyperparameters

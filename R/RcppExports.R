@@ -17,6 +17,12 @@ update_H_cpp <- function(y, Delta_in, Eta_in, hyperpar, nu, q = 0.5) {
     .Call(`_gltfactor_update_H_cpp`, y, Delta_in, Eta_in, hyperpar, nu, q)
 }
 
+#' @keywords internal
+#' @noRd
+update_delta_cpp <- function(y, Delta_in, Eta, tau, hyperpar) {
+    .Call(`_gltfactor_update_delta_cpp`, y, Delta_in, Eta, tau, hyperpar)
+}
+
 #' Compute marginal likelihood for a single row i of Delta
 #' 
 #' Matches OLDSTUFF/aux.R::marg.lik.i
