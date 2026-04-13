@@ -3,6 +3,7 @@
 #include "marglik.h"
 #include "update_H.h"
 #include "update.pivots.h"
+#include "update_delta.h"
 #include "update_Lambda_sigma2.h"
 #include "update_Eta.h"
 
@@ -292,9 +293,19 @@ Rcpp::List gltfa_cpp(
 
       last["tau"] = tau;
       // ---------------------------------------------------------------------
-      // STEP 5: Update Delta below pivots
-      // Placeholder: no update yet.
+      // STEP 5: Update Delta entries below pivots (column-wise MH scan)
+      // For each column j, rows strictly below the pivot ell[j] are
+      // candidates for flipping. Each entry delta_{ij} is updated via a
+      // Metropolis-Hastings step using the log posterior odds.
       // ---------------------------------------------------------------------
+      {
+        const arma::vec tau_vec = Rcpp::as<arma::vec>(
+            Rcpp::NumericVector(last["tau"]));
+
+        Delta = update_delta_cpp(y, Delta, Eta, tau_vec, prior);
+        last["Delta"] = Delta;
+
+      }
 
       // ---------------------------------------------------------------------
       // STEP 6: Update sigma_i^2, i = 1, ..., m
@@ -363,9 +374,17 @@ Rcpp::List gltfa_cpp(
         Delta_draw[save_idx] = last["Delta"];
         Lambda_draw[save_idx] = last["Lambda"];
 
+        // Write local copies back — Rcpp::List operator[] returns a copy,
+        // not a reference, so assignments above do not modify draws in-place.
+        draws["ell"]    = ell_draw;
+        draws["tau"]    = tau_draw;
+        draws["Delta"]  = Delta_draw;
+        draws["Lambda"] = Lambda_draw;
+
         if (store_eta) {
           Rcpp::List Eta_draw = draws["Eta"];
           Eta_draw[save_idx] = last["Eta"];
+          draws["Eta"] = Eta_draw;
         }
 
         Rcpp::NumericVector sigma2_last = last["sigma2"];

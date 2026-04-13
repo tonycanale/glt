@@ -37,6 +37,35 @@ marg.lik <- function(index, y, Delta, Eta, hyperpar, logarithm =TRUE){
   }
 }
 
+#@ log posterior odds with marginal likelihood 
+log.post.odds.ij <- function(i, j, y, Delta, Eta, tau, hyperpar, logarithm=TRUE)
+{
+  Delta_zero <- Delta
+  Delta_one <- Delta
+  Delta_zero[i,j] <- 0
+  Delta_one[i,j] <- 1
+  log_prior_odds <- log(tau[j]) - log(1-tau[j])
+  ll_one <- marg.lik(i, y, Delta_one, Eta, hyperpar)
+  ll_zero <- marg.lik(i, y, Delta_zero, Eta, hyperpar)
+  res <- (ll_one - ll_zero) + log_prior_odds
+  ifelse(logarithm, as.double(res), as.double(exp(res)))
+}
+
+# get pivot function
+get_pivots <- function(Delta) {
+  if (!is.matrix(Delta)) {
+    stop("`Delta` must be a matrix.", call. = FALSE)
+  }
+  pivots <- apply(Delta, 2L, match, x = 1L)
+  if (length(pivots) != length(unique(pivots))) {
+    stop("Pivots need to be on different rows.", call. = FALSE)
+  }
+  if (anyNA(pivots)) {
+    stop("Each column of `Delta` must contain at least one 1 to define a pivot.", call. = FALSE)
+  }
+  as.integer(pivots)
+}
+
 rbetabinom <- function(a,b,size){
   probs <- exp(lgamma(size+1)-lgamma(0:size+1)-lgamma(size-0:size+1) + 
     lbeta(a+0:size,b+size:0) - lbeta(a,b))
