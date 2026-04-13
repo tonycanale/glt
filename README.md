@@ -13,7 +13,7 @@ Current features:
 
 - input validation and preprocessing
 - Rcpp interface and sampler skeleton
-- Updates for: H, pivots, tau probability
+- Updates for: H, pivots, delta (below pivots), tau probability
 
 ## Author
 
