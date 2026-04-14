@@ -1,5 +1,5 @@
 #include <RcppArmadillo.h>
-#include "helpers.h"      // pivots_from_delta_1based, log_post_odds_ij
+#include "utils_aux.h"      // pivots_from_delta_1based, log_post_odds_ij
 #include "update_delta.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]

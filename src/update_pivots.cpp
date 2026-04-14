@@ -1,7 +1,6 @@
 #include <RcppArmadillo.h>
-#include "helpers.h"          // pivots_from_delta_1based, set_pivot_diagonal_from_ell_1based, changed_rows_1based
-#include "marglik.h"
-#include "update.pivots.h"
+#include "utils_aux.h"          // pivots_from_delta_1based, set_pivot_diagonal_from_ell_1based, changed_rows_1based
+#include "update_pivots.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 

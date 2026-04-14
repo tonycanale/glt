@@ -14,7 +14,7 @@ Delta
 y <- t(Lambda%*% Eta)  + matrix(rnorm(T*m,sd = 0.2),T,m)
 nu <- .5
 
-source("aux.R")
+source("utils_aux.R")
 source("update.H.R")
 updH.step <- update.H(y, Delta, Eta, hyperpar, nu, q = 0.5)
 H <- ncol(Delta)

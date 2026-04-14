@@ -1,6 +1,6 @@
 // src/update_H.cpp
 #include <RcppArmadillo.h>
-#include "marglik.h"
+#include "utils_aux.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 

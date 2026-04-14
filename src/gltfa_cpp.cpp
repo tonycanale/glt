@@ -1,8 +1,7 @@
 #include <RcppArmadillo.h>
-#include "helpers.h"
-#include "marglik.h"
+#include "utils_aux.h"
 #include "update_H.h"
-#include "update.pivots.h"
+#include "update_pivots.h"
 #include "update_delta.h"
 #include "update_Lambda_sigma2.h"
 #include "update_Eta.h"
