@@ -4,7 +4,7 @@
 
 ## Overview
 
-`gltfactor` implements Bayesian factor models under a **GLT process prior** currently under develpement.
+The package `gltfactor` implements Bayesian factor models under a **GLT process prior** by Antonio Canale and Sylvia Fruewirth-Shnatter (currently under development).
 
 
 ## Development status 🚧
