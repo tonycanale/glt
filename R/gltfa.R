@@ -32,7 +32,7 @@
 gltfa <- function(
   y,
   mcmc = list(),
-  Hmax = NULL,
+  Hmax = ncol(y),
   prior = list(),
   init = list(),
   control = list(),

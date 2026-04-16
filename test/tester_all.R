@@ -8,7 +8,7 @@ devtools::load_all("/Users/antonio/github/glt", recompile = TRUE)
 # 1.  Data-generating process
 # -----------------------------------------------------------------------------
 set.seed(1)
-T_obs <- 50; m <- 6; H <- 3
+T_obs <- 100; m <- 6; H <- 3
 
 Lambda_true <- matrix(
   c(1,   0,    0,
@@ -25,29 +25,39 @@ y <- t(Lambda_true %*% Eta_true) +
   matrix(rnorm(T_obs * m, sd = sqrt(sigma2_true)), T_obs, m, byrow = TRUE)
 Delta <- matrix(as.integer(Lambda_true != 0), m, H)
 
-prior_full <- list(a_nu = 1, b_nu = 1, alpha = 1, beta = 1,
-                   kappa = 10, a_sigma = 2, b_sigma = 1, a_s = 2, b_s = 1)
+prior_full <- list(a_nu = 1, b_nu = 2, alpha = 2, beta = 2,
+                   kappa = 2, a_sigma = 1, b_sigma = 1, a_s = 2, b_s = 1)
 
 # -----------------------------------------------------------------------------
 # 2.  Run the sampler
 # -----------------------------------------------------------------------------
-
-
-fit2 <- gltfa(
+fit <- gltfa(
   y       = y,
-  mcmc    = list(niter = 5001, nburn = 1, thin = 1),
-  Hmax   = ,
+  mcmc    = list(niter = 6000, nburn = 1000, thin = 2),
+  Hmax   = 6,
   prior   = prior_full,
-  init    = list(H = H, nu = 0.5, ell = c(1, 2, 3), tau = c(0.5, 0.5, 0.5),
+  init    = list(H = H, nu = 0.5, ell = c(1, 2, 4), tau = 0.75*rep(1,H),
                  Delta = Delta, Lambda = Lambda_true,
                  Eta = Eta_true, sigma2 = sigma2_true),
   control = list(store_draws = TRUE, store_eta = TRUE,
                  print_every = 250L,  seed = 1L)
 )
 
-plot(fit2$draws$H, type = "l", main = "Trace: H", xlab = "iter", ylab = "H", col = "steelblue")
+plot(fit$draws$H, type = "l", main = "Trace: H", xlab = "iter", ylab = "H", col = "steelblue")
 
-var <- get_variance(fit2)
+var <- get_variance(fit)
+
+par(mfrow=c(1,2))
+image(tcrossprod(Lambda_true))
+estLLt <- apply(var$LLt,c(1,2),mean)
+image(estLLt)
+
+image(tcrossprod(Lambda_true) + sigma2_true)
+estOmega <- apply(var$total,c(1,2),mean)
+image(estOmega)
+
+par(mfrow=c(1,1))
+
 
 nsave <- fit$meta$nsave
 cat(sprintf("\n=== Meta: niter=%d  nburn=%d  thin=%d  nsave=%d ===\n\n",
