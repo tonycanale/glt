@@ -26,7 +26,7 @@ y <- t(Lambda_true %*% Eta_true) +
 Delta <- matrix(as.integer(Lambda_true != 0), m, H)
 
 prior_full <- list(a_nu = 1, b_nu = 2, alpha = 2, beta = 2,
-                   kappa = 2, a_sigma = 1, b_sigma = 1, a_s = 2, b_s = 1)
+                   kappa = 5, a_sigma = 1, b_sigma = 2)
 
 # -----------------------------------------------------------------------------
 # 2.  Run the sampler
@@ -40,8 +40,19 @@ fit <- gltfa(
                  Delta = Delta, Lambda = Lambda_true,
                  Eta = Eta_true, sigma2 = sigma2_true),
   control = list(store_draws = TRUE, store_eta = TRUE,
-                 print_every = 250L,  seed = 1L)
+                 print_every = 250L,  seed = 1L),
+  fixed   = list(pivots=TRUE, H=TRUE, Eta=TRUE, LambdaSigma=TRUE)
 )
+
+
+par(mfrow=c(1,2))
+image(Delta)
+apply(array(unlist(fit$draws$Delta),dim=c(6,3,2500)),c(1,2),mean) |> image()
+apply(array(unlist(fit$draws$Delta),dim=c(6,3,2500)),c(1,2),mean)
+par(mfrow=c(1,1))
+
+
+
 
 plot(fit$draws$H, type = "l", main = "Trace: H", xlab = "iter", ylab = "H", col = "steelblue")
 
@@ -51,11 +62,9 @@ par(mfrow=c(1,2))
 image(tcrossprod(Lambda_true))
 estLLt <- apply(var$LLt,c(1,2),mean)
 image(estLLt)
-
 image(tcrossprod(Lambda_true) + sigma2_true)
 estOmega <- apply(var$total,c(1,2),mean)
 image(estOmega)
-
 par(mfrow=c(1,1))
 
 
@@ -91,6 +100,8 @@ for (j in seq_len(m)) {
   abline(h = sigma2_true[j], col = "red", lty = 2)
 }
 par(op)
+
+
 
 # 4c. Lambda traceplots for the first 3 factors, diagonal entries
 #     (only meaningful draws where H >= 3)

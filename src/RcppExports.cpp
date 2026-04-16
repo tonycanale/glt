@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // gltfa_cpp
-Rcpp::List gltfa_cpp(const arma::mat& y, const Rcpp::List& mcmc, const Rcpp::List& model, const Rcpp::List& prior, const Rcpp::List& init, const Rcpp::List& control);
-RcppExport SEXP _gltfactor_gltfa_cpp(SEXP ySEXP, SEXP mcmcSEXP, SEXP modelSEXP, SEXP priorSEXP, SEXP initSEXP, SEXP controlSEXP) {
+Rcpp::List gltfa_cpp(const arma::mat& y, const Rcpp::List& mcmc, const Rcpp::List& model, const Rcpp::List& prior, const Rcpp::List& init, const Rcpp::List& control, const Rcpp::List& fixed);
+RcppExport SEXP _gltfactor_gltfa_cpp(SEXP ySEXP, SEXP mcmcSEXP, SEXP modelSEXP, SEXP priorSEXP, SEXP initSEXP, SEXP controlSEXP, SEXP fixedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,7 +23,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::List& >::type prior(priorSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type init(initSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(gltfa_cpp(y, mcmc, model, prior, init, control));
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type fixed(fixedSEXP);
+    rcpp_result_gen = Rcpp::wrap(gltfa_cpp(y, mcmc, model, prior, init, control, fixed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -74,7 +75,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_gltfactor_gltfa_cpp", (DL_FUNC) &_gltfactor_gltfa_cpp, 6},
+    {"_gltfactor_gltfa_cpp", (DL_FUNC) &_gltfactor_gltfa_cpp, 7},
     {"_gltfactor_update_H_cpp", (DL_FUNC) &_gltfactor_update_H_cpp, 6},
     {"_gltfactor_update_delta_cpp", (DL_FUNC) &_gltfactor_update_delta_cpp, 5},
     {"_gltfactor_update_pivots_cpp", (DL_FUNC) &_gltfactor_update_pivots_cpp, 4},

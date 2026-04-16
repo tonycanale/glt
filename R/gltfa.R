@@ -24,6 +24,7 @@
 #' @param prior A named list of prior hyperparameters.
 #' @param init A named list of initial values for the sampler.
 #' @param control A named list of algorithmic and storage options.
+#' @param fixed A named list of logical flags indicating which updates to skip (e.g. list(H=TRUE)).
 #' @param verbose Logical; whether to print sampling progress.
 #'
 #' @return An object of class `"gltfit"` containing processed inputs,
@@ -36,6 +37,7 @@ gltfa <- function(
   prior = list(),
   init = list(),
   control = list(),
+  fixed = list(),
   verbose = interactive()
 ) {
   y <- as.matrix(y)
@@ -71,6 +73,9 @@ gltfa <- function(
   if (!is.list(control)) {
     stop("`control` must be a named list.", call. = FALSE)
   }
+  if (!is.list(fixed)) {
+    stop("`fixed` must be a named list.", call. = FALSE)
+  }
   if (!is.logical(verbose) || length(verbose) != 1L || is.na(verbose)) {
     stop("`verbose` must be a single TRUE or FALSE.", call. = FALSE)
   }
@@ -98,7 +103,8 @@ gltfa <- function(
     model = model,
     prior = prior,
     init = init,
-    control = control
+    control = control,
+    fixed = fixed
   )
 
   fit$call <- match.call()
@@ -106,7 +112,8 @@ gltfa <- function(
     mcmc = mcmc,
     model = model,
     prior = prior,
-    control = control
+    control = control,
+    fixed = fixed
   )
 
   class(fit) <- "gltfit"

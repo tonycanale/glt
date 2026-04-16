@@ -99,7 +99,7 @@ inline double marg_lik_i(
 //' @param y Response matrix (T x m)
 //' @param Delta Binary indicator matrix (m x H)
 //' @param Eta Factor matrix (H x T)
-//' @param hyperpar List with elements: kappa, a_s, b_s
+//' @param hyperpar List with elements: kappa, a_sigma, b_sigma
 //' @param logarithm If TRUE, return log marginal likelihood; else exponentiate
 //' 
 //' @return Numeric vector of marginal likelihoods
@@ -115,8 +115,8 @@ inline Rcpp::NumericVector marg_lik(
     bool logarithm = true
 ) {
   double kappa = Rcpp::as<double>(hyperpar["kappa"]);
-  double a_s = Rcpp::as<double>(hyperpar["a_s"]);
-  double b_s = Rcpp::as<double>(hyperpar["b_s"]);
+  double a_s = Rcpp::as<double>(hyperpar["a_sigma"]);
+  double b_s = Rcpp::as<double>(hyperpar["b_sigma"]);
   
   Rcpp::NumericVector result(index.size());
   

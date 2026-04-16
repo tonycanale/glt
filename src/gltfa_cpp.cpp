@@ -16,7 +16,8 @@ Rcpp::List gltfa_cpp(
     const Rcpp::List& model,
     const Rcpp::List& prior,
     const Rcpp::List& init,
-    const Rcpp::List& control
+    const Rcpp::List& control,
+    const Rcpp::List& fixed // NEW: list of logical flags to freeze updates
 ) {
   // ---------------------------------------------------------------------------
   // Dimensions and basic checks
@@ -78,6 +79,33 @@ Rcpp::List gltfa_cpp(
       Rcpp::Function set_seed("set.seed");
       set_seed(seed);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fixed flags parsing
+  // ---------------------------------------------------------------------------
+  bool FIX_all = false;
+  bool FIX_H = false;
+  bool FIX_nu = false;
+  bool FIX_pivots = false;
+  bool FIX_tau = false;
+  bool FIX_Delta = false;
+  bool FIX_LambdaSigma = false; // joint flag for sigma2+Lambda update
+  bool FIX_Eta = false;
+
+  if (!fixed.isNULL()) {
+    if (fixed.containsElementNamed("all")) FIX_all = Rcpp::as<bool>(fixed["all"]);
+    if (fixed.containsElementNamed("H")) FIX_H = Rcpp::as<bool>(fixed["H"]);
+    if (fixed.containsElementNamed("nu")) FIX_nu = Rcpp::as<bool>(fixed["nu"]);
+    if (fixed.containsElementNamed("pivots")) FIX_pivots = Rcpp::as<bool>(fixed["pivots"]);
+    if (fixed.containsElementNamed("tau")) FIX_tau = Rcpp::as<bool>(fixed["tau"]);
+    if (fixed.containsElementNamed("Delta")) FIX_Delta = Rcpp::as<bool>(fixed["Delta"]);
+    if (fixed.containsElementNamed("LambdaSigma")) FIX_LambdaSigma = Rcpp::as<bool>(fixed["LambdaSigma"]);
+    if (fixed.containsElementNamed("Eta")) FIX_Eta = Rcpp::as<bool>(fixed["Eta"]);
+  }
+
+  if (FIX_all) {
+    FIX_H = FIX_nu = FIX_pivots = FIX_tau = FIX_Delta = FIX_LambdaSigma = FIX_Eta = true;
   }
 
   // ---------------------------------------------------------------------------
