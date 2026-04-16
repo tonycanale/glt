@@ -2,24 +2,24 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 gltfa_cpp <- function(y, mcmc, model, prior, init, control) {
-    .Call('_gltfactor_gltfa_cpp', PACKAGE = 'gltfactor', y, mcmc, model, prior, init, control)
+    .Call(`_gltfactor_gltfa_cpp`, y, mcmc, model, prior, init, control)
 }
 
 #' @keywords internal
 #' @noRd
 update_H_cpp <- function(y, Delta_in, Eta_in, hyperpar, nu, q = 0.5) {
-    .Call('_gltfactor_update_H_cpp', PACKAGE = 'gltfactor', y, Delta_in, Eta_in, hyperpar, nu, q)
+    .Call(`_gltfactor_update_H_cpp`, y, Delta_in, Eta_in, hyperpar, nu, q)
 }
 
 #' @keywords internal
 #' @noRd
 update_delta_cpp <- function(y, Delta_in, Eta, tau, hyperpar) {
-    .Call('_gltfactor_update_delta_cpp', PACKAGE = 'gltfactor', y, Delta_in, Eta, tau, hyperpar)
+    .Call(`_gltfactor_update_delta_cpp`, y, Delta_in, Eta, tau, hyperpar)
 }
 
 #' @keywords internal
 #' @noRd
 update_pivots_cpp <- function(y, Delta_in, Eta, hyperpar) {
-    .Call('_gltfactor_update_pivots_cpp', PACKAGE = 'gltfactor', y, Delta_in, Eta, hyperpar)
+    .Call(`_gltfactor_update_pivots_cpp`, y, Delta_in, Eta, hyperpar)
 }
 

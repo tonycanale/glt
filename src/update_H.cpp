@@ -39,13 +39,15 @@ Rcpp::List update_H_cpp(
   
   int increase = 0;
   if ((H > 1) && (H < m)) {
-    increase = (int)std::round(Rcpp::runif(1)[0]);
+    // increase with probability q, decrease with probability 1 - q
+    increase = (R::runif(0.0, 1.0) < q) ? 1 : 0;
   } else if (H == 1) {
     increase = 1;
     q = 1.0;
   } else if (H == m) {
+    // Cannot increase beyond m, so only decrease is possible.
     increase = 0;
-    q = 1.0;
+    q = 0; //warning q=0 is may cause NaNs in acceptance ratio, but these will be handled by the acceptance logic below.
   }
   
   bool accepted = false;
@@ -105,7 +107,7 @@ Rcpp::List update_H_cpp(
     double loglikR = 0.0;
     for (int i = 0; i < (int)new_ll.size(); ++i) loglikR += (new_ll[i] - old_ll[i]);
     
-    double Rval = std::exp(loglikR + std::log(nu) - std::log(1.0 - nu) + std::log(q));
+    double Rval = std::exp(loglikR + std::log(nu) - std::log(1.0 - nu) + std::log(q)); //log(q) is not zero as increase=TRUE !
     double u = R::unif_rand();
     accepted = (u < std::min(1.0, Rval));
   } else {
@@ -134,7 +136,7 @@ Rcpp::List update_H_cpp(
     double loglikR = 0.0;
     for (int i = 0; i < (int)new_ll.size(); ++i) loglikR += (new_ll[i] - old_ll[i]);
     
-    double Rval = std::exp(loglikR + std::log(1.0 - nu) - std::log(nu) + std::log(1.0 - q));
+    double Rval = std::exp(loglikR + std::log(1.0 - nu) - std::log(nu) + std::log(1.0 - q)); //log(1-q) is not zero as increase=FALSE and q=0
     double u = R::unif_rand();
     accepted = (u < std::min(1.0, Rval));
   }

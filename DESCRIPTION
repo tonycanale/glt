@@ -13,3 +13,4 @@ LinkingTo:
     RcppArmadillo
 Imports: 
     Rcpp
+    

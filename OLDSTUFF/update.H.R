@@ -37,7 +37,7 @@ update.H <- function(y, Delta, Eta, hyperpar, nu, q = 0.5){
       marg.lik(index, y=y, Delta=Delta, Eta=Eta, hyperpar=hyperpar) )
     # to speed it up we probably just need to compute the marginal likelihood for the i in which the 
     # additional column is equal to one, i.e. for those i where  \delta_{iH^*}=1
-    R <- exp(log.lik.R + log(nu) - log(1-nu) + log(q))
+    R <- exp(log.lik.R + log(nu) - log(1-nu) + log(q)) 
     accept <- runif(1) < min(1,R)
   }
   else{
