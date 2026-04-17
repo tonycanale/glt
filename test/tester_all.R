@@ -2,7 +2,8 @@
 # tester_all.R  –  Full MCMC check for gltfactor
 # =============================================================================
 
-devtools::load_all("/Users/antonio/github/glt", recompile = TRUE)
+devtools::load_all("/Users/antonio/github/gltfactor/", recompile = TRUE)
+#devtools::load_all("/Users/antonio/github/gltf/", recompile = TRUE)
 
 # -----------------------------------------------------------------------------
 # 1.  Data-generating process
@@ -11,16 +12,20 @@ set.seed(1)
 T_obs <- 100; m <- 6; H <- 3
 
 Lambda_true <- matrix(
-  c(1,   0,    0,
-    0.6, 0.9,  0,
-    0.8, 0.2,  0,
-    0.4, 0,    1,
-    0,  -0.6, -0.8,
-    0,   0.1,  0.2),
+  c(1.4, 0.0,  0.0,
+    0.6, 0.9,  0.0,
+    0.8, 1.2,  0.0,
+    1.4, 0.0,  1.2,
+    0.0,  -1.6, -1.8,
+    0.0,   0.8,  1.1),
   nrow = m, ncol = H, byrow = TRUE
 )
 Eta_true    <- matrix(rnorm(H * T_obs), H, T_obs)
-sigma2_true <- rep(1, m)
+sigma2_true <- rep(0.5, m)
+
+total_true <- tcrossprod(Lambda_true) + diag(sigma2_true)
+total_true
+
 y <- t(Lambda_true %*% Eta_true) +
   matrix(rnorm(T_obs * m, sd = sqrt(sigma2_true)), T_obs, m, byrow = TRUE)
 Delta <- matrix(as.integer(Lambda_true != 0), m, H)
@@ -34,7 +39,7 @@ prior_full <- list(a_nu = 1, b_nu = 2, alpha = 2, beta = 2,
 fit <- gltfa(
   y       = y,
   mcmc    = list(niter = 6000, nburn = 1000, thin = 2),
-  Hmax   = 6,
+  Hmax    = 6,
   prior   = prior_full,
   init    = list(H = H, nu = 0.5, ell = c(1, 2, 4), tau = 0.75*rep(1,H),
                  Delta = Delta, Lambda = Lambda_true,
