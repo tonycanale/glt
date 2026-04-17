@@ -239,16 +239,8 @@ generate_scenario3 <- function(p, k) {
     idx_block <- seq.int(block_starts[j], block_ends[j])
     idx_block <- idx_block[idx_block > pivots[j]]
     if (length(idx_block) > 0) {
-      Delta[idx_block, j] <- rbinom(length(idx_block), 1, 0.85)
+      Delta[idx_block, j] <- 1
     }
-
-    # Very occasional spillover below block to allow some imperfect structure
-    idx_tail <- seq.int(block_ends[j] + 1, p)
-    if (length(idx_tail) > 0) {
-      Delta[idx_tail, j] <- rbinom(length(idx_tail), 1, 0.05)
-    }
-
-    below_probs[j] <- 0.85
   }
 
   Lambda <- matrix(0, nrow = p, ncol = k)
