@@ -1,7 +1,8 @@
 ############################################################
 # sim_gltfa.R
-#
 # Simulation script for Gaussian factor models with
+# Simulation script for Gaussian factor models with
+#
 # generalized lower-triangular flavored loading structures.
 #
 # It:
