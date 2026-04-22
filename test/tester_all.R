@@ -30,8 +30,8 @@ y <- t(Lambda_true %*% Eta_true) +
   matrix(rnorm(T_obs * m, sd = sqrt(sigma2_true)), T_obs, m, byrow = TRUE)
 Delta <- matrix(as.integer(Lambda_true != 0), m, H)
 
-prior_full <- list(a_nu = 1, b_nu = 2, alpha = 2, beta = 2,
-                   kappa = 5, a_sigma = 1, b_sigma = 2)
+prior_full <- list(a_nu = 1, b_nu = q, alpha = 1, beta = 1,
+                   kappa = 1, a_sigma = 1, b_sigma = 0.3)
 
 # -----------------------------------------------------------------------------
 # 2.  Run the sampler
@@ -45,14 +45,14 @@ fit <- gltfa(
                  Delta = Delta, Lambda = Lambda_true,
                  Eta = Eta_true, sigma2 = sigma2_true),
   control = list(store_draws = TRUE, store_eta = TRUE,
-                 print_every = 250L,  seed = 1L),
-  fixed   = list(pivots=TRUE, H=TRUE, Eta=TRUE, LambdaSigma=TRUE)
+                 print_every = 250L,  seed = 1L)#,
+  #fixed   = list(pivots=TRUE, H=TRUE, Eta=TRUE, LambdaSigma=TRUE)
 )
 
 
 par(mfrow=c(1,2))
-image(Delta)
-apply(array(unlist(fit$draws$Delta),dim=c(6,3,2500)),c(1,2),mean) |> image()
+image(t(Delta))
+t(apply(array(unlist(fit$draws$Delta),dim=c(6,3,2500)),c(1,2),mean)) |> image()
 apply(array(unlist(fit$draws$Delta),dim=c(6,3,2500)),c(1,2),mean)
 par(mfrow=c(1,1))
 
@@ -180,12 +180,10 @@ print(Delta)
 # 7.  Quick visual: posterior mean Lambda vs truth (side-by-side image)
 # -----------------------------------------------------------------------------
 op3 <- par(mfrow = c(1, 2))
-image(t(Lambda_pm_raw), main = "Posterior mean Lambda\n(first H cols)",
-      col = hcl.colors(20, "RdBu", rev = TRUE),
-      zlim = c(-1.5, 1.5), axes = FALSE)
-image(t(Lambda_true), main = "True Lambda",
-      col = hcl.colors(20, "RdBu", rev = TRUE),
-      zlim = c(-1.5, 1.5), axes = FALSE)
+plot_real_matrix(Lambda_pm_raw, 
+  main = "Posterior mean Lambda\n(first H cols)")
+plot_real_matrix(Lambda_true, 
+  main = "True Lambda")
 par(op3)
 
 # -----------------------------------------------------------------------------

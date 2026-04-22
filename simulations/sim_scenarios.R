@@ -1,19 +1,8 @@
 ############################################################
 # sim_gltfa.R
 # Simulation script for Gaussian factor models with
-# Simulation script for Gaussian factor models with
-#
 # generalized lower-triangular flavored loading structures.
 #
-# It:
-#   1. generates Gaussian data under multiple scenarios
-#   2. runs gltfa(y, mcmc = list(), prior = list())
-#   3. stores results in a reproducible format
-#
-# NOTE:
-# - I leave mcmc = list() and prior = list() blank, as requested.
-# - Adjust the orientation of y if your gltfa() expects variables in rows
-#   rather than columns. Here y is n x p: rows = observations, cols = variables.
 ############################################################
 
 rm(list = ls())
@@ -28,54 +17,50 @@ set.seed(123)
 out_dir <- "sim_gltfa_output"
 if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 
-# Number of replicates per configuration
+# Number of replicates
 n_reps <- 20
 
-# Sample sizes
-sample_sizes <- c(50, 100, 250)
-
-# Moderate dimensionalities:
-# p = observed dimension, k = latent dimension
-dim_grid <- list(
-  list(p = 20, k = 5),
-  list(p = 30, k = 7),
-  list(p = 40, k = 10)
+# Dimensions 
+m_dim <- c(20, 50, 100)
+T_dim <- c(m_dim, 2 * m_dim)
+H_dim <- matrix(
+  c(3,8,10,
+    5,10,15,
+    5,10,15,
+    8, 20, 40),
+  nrow = 4, ncol = 3, byrow = TRUE
 )
 
 # Scenario names
 scenario_names <- c(
   "scenario1_few_dense_columns",
-  "scenario2_sparse_below",
+  "scenario2_sparse_below", # similar to Sylvia's scenario 
   "scenario3_block_covariance",
-  "scenario4_many_sparse_columns"
+  "scenario4_many_sparse_columns". ## H < (m-1)/2
 )
-
-# Idiosyncratic variances: choose either fixed or random
-use_random_uniqueness <- TRUE
-
 
 ## -------------------------------- ##
 ## 1. Helper functions: basic tools ##
 ## -------------------------------- ##
 
-# Build a p x k indicator matrix Delta with ordered pivots.
-# pivots must be strictly increasing integers in 1:p.
-make_delta_from_pivots <- function(p, k, pivots, below_probs) {
-  stopifnot(length(pivots) == k)
-  stopifnot(length(below_probs) == k)
+# Build a m x H indicator matrix Delta with ordered pivots.
+# pivots must be strictly increasing integers in 1:m.
+make_delta_from_pivots <- function(m, H, pivots, below_probs) {
+  stopifnot(length(pivots) == H)
+  stopifnot(length(below_probs) == H)
   stopifnot(all(diff(pivots) > 0))
-  stopifnot(all(pivots >= 1), all(pivots <= p))
+  stopifnot(all(pivots >= 1), all(pivots <= m))
 
-  Delta <- matrix(0, nrow = p, ncol = k)
+  Delta <- matrix(0, nrow = m, ncol = H)
 
-  for (j in seq_len(k)) {
+  for (j in seq_len(H)) {
     # structural zeros above pivot
     # pivot entry forced to 1
     Delta[pivots[j], j] <- 1
 
     # below pivot, Bernoulli draws with column-specific sparsity
-    if (pivots[j] < p) {
-      idx <- (pivots[j] + 1):p
+    if (pivots[j] < m) {
+      idx <- (pivots[j] + 1):m
       Delta[idx, j] <- rbinom(length(idx), size = 1, prob = below_probs[j])
     }
   }
@@ -85,73 +70,48 @@ make_delta_from_pivots <- function(p, k, pivots, below_probs) {
 
 # Given Delta, generate Lambda with Gaussian nonzero loadings.
 # Signs are random; pivot entries are made reasonably strong.
-make_lambda_from_delta <- function(Delta,
-                                   pivot_scale = 1.2,
-                                   offpivot_scale = 0.7,
-                                   min_pivot_abs = 0.6) {
-  p <- nrow(Delta)
-  k <- ncol(Delta)
-
-  Lambda <- matrix(0, nrow = p, ncol = k)
-
-  for (j in seq_len(k)) {
-    nz <- which(Delta[, j] == 1)
-    pivot_j <- min(nz)
-
-    # pivot loading
-    val <- rnorm(1, mean = 0, sd = pivot_scale)
-    while (abs(val) < min_pivot_abs) {
-      val <- rnorm(1, mean = 0, sd = pivot_scale)
-    }
-    Lambda[pivot_j, j] <- val
-
-    # other nonzero loadings below pivot
-    other_nz <- setdiff(nz, pivot_j)
-    if (length(other_nz) > 0) {
-      Lambda[other_nz, j] <- rnorm(length(other_nz), mean = 0, sd = offpivot_scale)
-    }
-  }
-
+make_lambda_from_delta <- function(Delta, negative_prob = 0.1,
+  mean =1, sd = 0.1){
+  m <- nrow(Delta)
+  H <- ncol(Delta)
+  Lambda <- matrix( rnorm(m * H, mean = mean, sd = sd),
+    nrow = m, ncol = H)
+  Lambda_neg <- matrix(sample(c(-1,1),m * H, replace = TRUE, 
+    prob = c(negative_prob, 1 - negative_prob)),
+    nrow = m, ncol = H)
+  Lambda <- Lambda * Lambda_neg
+  Lambda <- Lambda * Delta
   Lambda
-}
-
-# Generate diagonal uniqueness matrix Sigma
-make_sigma_diag <- function(p, random = TRUE) {
-  if (random) {
-    vars <- runif(p, min = 0.3, max = 0.8)
-  } else {
-    vars <- rep(0.5, p)
-  }
-  diag(vars, nrow = p, ncol = p)
 }
 
 # Simulate Gaussian factor model data:
 # y_t = Lambda eta_t + eps_t
 # Returns y as n x p
 simulate_factor_data <- function(n, Lambda, Sigma) {
-  p <- nrow(Lambda)
-  k <- ncol(Lambda)
+  m <- nrow(Lambda)
+  H <- ncol(Lambda)
 
-  Eta <- matrix(rnorm(n * k), nrow = n, ncol = k)   # n x k
-  Eps <- matrix(rnorm(n * p), nrow = n, ncol = p)   # n x p
+  Eta <- matrix(rnorm(n * H), nrow = n, ncol = H)   # n x H
+  Eps <- matrix(rnorm(n * m), nrow = n, ncol = m)   # n x m
 
   sigma_sd <- sqrt(diag(Sigma))
   Eps <- sweep(Eps, 2, sigma_sd, FUN = "*")
 
   Y <- Eta %*% t(Lambda) + Eps
-  colnames(Y) <- paste0("y", seq_len(p))
+  colnames(Y) <- paste0("y", seq_len(m))
 
   Y
 }
 
 # Convenience wrapper to package truth
-make_truth_object <- function(Lambda, Sigma, scenario, n, rep_id, p, k, pivots, below_probs) {
+make_truth_object <- function(Lambda, Sigma, scenario, n, 
+  rep_id, m, H, pivots, below_probs) {
   list(
     scenario = scenario,
     n = n,
     rep = rep_id,
-    p = p,
-    k = k,
+    m = m,
+    H = H,
     pivots = pivots,
     below_probs = below_probs,
     Lambda = Lambda,
@@ -168,21 +128,14 @@ make_truth_object <- function(Lambda, Sigma, scenario, n, rep_id, p, k, pivots, 
 # Scenario 1:
 # lower triangular factor loading not sparse below
 # different sparsity between columns, with a few dense columns
-generate_scenario1 <- function(p, k) {
-  # reasonably spread pivots
-  pivots <- round(seq(1, p - (k - 1), length.out = k)) + 0:(k - 1)
-  pivots <- unique(pmax(1, pmin(p, pivots)))
-  if (length(pivots) < k) pivots <- seq_len(k)
-
+generate_scenario1 <- function(m, H) {
+  # this is exactly PLT
+  pivots <- seq_len(H)
+  
   # few dense columns, others moderately sparse
-  below_probs <- rep(0.25, k)
-  dense_cols <- seq_len(max(1, floor(k / 3)))
-  below_probs[dense_cols] <- 0.80
-  if (k >= 4) below_probs[k] <- 0.10
-
-  Delta <- make_delta_from_pivots(p, k, pivots, below_probs)
-  Lambda <- make_lambda_from_delta(Delta, pivot_scale = 1.3, offpivot_scale = 0.8)
-  Sigma <- make_sigma_diag(p, random = use_random_uniqueness)
+  Delta <- make_delta_from_pivots(m, H, pivots, 0.95)
+  Lambda <- make_lambda_from_delta(Delta)
+  Sigma <- diag(1,m)
 
   list(
     Delta = Delta,
@@ -195,17 +148,14 @@ generate_scenario1 <- function(p, k) {
 
 # Scenario 2:
 # lower triangular factor loading sparse below
-generate_scenario2 <- function(p, k) {
-  pivots <- round(seq(1, p - (k - 1), length.out = k)) + 0:(k - 1)
-  pivots <- unique(pmax(1, pmin(p, pivots)))
-  if (length(pivots) < k) pivots <- seq_len(k)
-
+generate_scenario2 <- function(m, H,m, pivots) {
+  
   # all columns sparse below pivot
-  below_probs <- seq(0.05, 0.20, length.out = k)
+  below_probs <- rep(0.5, H)
 
-  Delta <- make_delta_from_pivots(p, k, pivots, below_probs)
-  Lambda <- make_lambda_from_delta(Delta, pivot_scale = 1.2, offpivot_scale = 0.6)
-  Sigma <- make_sigma_diag(p, random = use_random_uniqueness)
+  Delta <- make_delta_from_pivots(m, H, pivots, below_probs)
+  Lambda <- make_lambda_from_delta(Delta)
+  Sigma <- diag(1,m)
 
   list(
     Delta = Delta,
@@ -218,73 +168,72 @@ generate_scenario2 <- function(p, k) {
 
 # Scenario 3:
 # factors leading to block covariance structure
-generate_scenario3 <- function(p, k) {
-  # Use contiguous variable blocks, each factor mostly active in one block.
-  # Keep GLT-like ordered pivots by placing pivot at first index of each block.
-  block_sizes <- rep(floor(p / k), k)
-  remainder <- p - sum(block_sizes)
-  if (remainder > 0) block_sizes[seq_len(remainder)] <- block_sizes[seq_len(remainder)] + 1
-
-  block_starts <- cumsum(c(1, block_sizes))[1:k]
-  block_ends <- cumsum(block_sizes)
-
-  pivots <- block_starts
-  Delta <- matrix(0, nrow = p, ncol = k)
-  below_probs <- rep(NA_real_, k)
-
-  for (j in seq_len(k)) {
-    Delta[pivots[j], j] <- 1
-
-    # Strong within-block activation from pivot downward inside block
-    idx_block <- seq.int(block_starts[j], block_ends[j])
-    idx_block <- idx_block[idx_block > pivots[j]]
-    if (length(idx_block) > 0) {
-      Delta[idx_block, j] <- 1
-    }
+generate_delta_scenario3 <- function(m, H, blocks_membership) {
+  
+  nblocks <- unique(blocks_membership) |> length()
+  Delta0 <- model.matrix(~ factor(blocks_membership) - 1) |>
+    matrix(nrow = m, ncol = nblocks)
+  # Distribute H factors across the nblocks as evenly as possible
+  cols_per_block <- rep(floor(H / nblocks), nblocks)
+  remainder_H <- H - sum(cols_per_block)
+  if (remainder_H > 0) {
+    cols_per_block[seq_len(remainder_H)] <- cols_per_block[seq_len(remainder_H)] + 1
   }
 
-  Lambda <- matrix(0, nrow = p, ncol = k)
+    Delta <- Delta0[, rep(seq_len(nblocks), cols_per_block), 
+      drop = FALSE]
+  Delta
+}
+Delta1 <- generate_delta_scenario3(m = m_dim[1], H = H_dim[3,1],
+  blocks_membership = c(rep(1, 8), rep(2, 6), rep(3, 6)))
+Delta1[1,2] <- Delta1[9,4] <- 0
+Delta1
+Delta2 <- generate_delta_scenario3(m = m_dim[2], H = H_dim[3,2],
+  blocks_membership = c(rep(1, 20), rep(2, 15), rep(3, 15)))
+Delta2[1,2:4] <- 0
+Delta2[2,3:4] <- 0
+Delta2[3,4] <- 0
+Delta2[21,6:8] <- 0
+Delta2[22,7:8] <- 0
+Delta2[23,8] <- 0
+Delta2[36,9:10] <- 0
+Delta2[37,10] <- 0
+Delta2
+Delta3 <- generate_delta_scenario3(m = m_dim[3], H = H_dim[3,3],
+  blocks_membership = c(rep(1, 40), rep(2, 30), rep(3, 30)))
+Delta3[1:5,1:5] <- Delta3[1:5,1:5]*lower.tri(Delta3[1:5,1:5],
+   diag = TRUE)
+Delta3[41:45,6:10] <- Delta3[41:45,6:10]*lower.tri(Delta3[41:45,6:10],
+   diag = TRUE)
+Delta3[71:75,11:15] <- Delta3[71:75,11:15]*lower.tri(Delta3[71:75,11:15],
+   diag = TRUE)
 
-  for (j in seq_len(k)) {
-    nz <- which(Delta[, j] == 1)
-    pivot_j <- pivots[j]
 
-    # pivot and within-block loadings slightly stronger to induce blocks
-    pivot_val <- rnorm(1, 1.3, 0.25)
-    pivot_val <- pivot_val * sample(c(-1, 1), 1)
-    Lambda[pivot_j, j] <- pivot_val
-
-    other_nz <- setdiff(nz, pivot_j)
-    if (length(other_nz) > 0) {
-      # stronger within-block effects
-      Lambda[other_nz, j] <- rnorm(length(other_nz), 0, 0.9)
-    }
-  }
-
-  Sigma <- make_sigma_diag(p, random = use_random_uniqueness)
+generate_scenario3 <- function(Delta) {
+  
+  Lambda <- make_lambda_from_delta(Delta, pivot_scale = 1.1, 
+    offpivot_scale = 0.5)
+  Sigma <- diag(1,nrow(Delta))
 
   list(
     Delta = Delta,
     Lambda = Lambda,
     Sigma = Sigma,
-    pivots = pivots,
-    below_probs = below_probs
+    pivots = get_pivots(Delta),
+    below_probs = 1
   )
 }
-
 # Scenario 4:
 # many columns and many zeroes below columns
 # different degrees of sparsity, many sparse columns
-generate_scenario4 <- function(p, k) {
-  pivots <- seq_len(k)
+generate_scenario4 <- function(m, H, m, pivots) {
+  
+  # all columns sparse below pivot
+  below_probs <- seq(0.15, 0.40, length.out = H)
 
-  # many columns, most very sparse, a few moderately sparse
-  base_probs <- seq(0.02, 0.15, length.out = k)
-  below_probs <- sample(base_probs, size = k, replace = FALSE)
-
-  Delta <- make_delta_from_pivots(p, k, pivots, below_probs)
-  Lambda <- make_lambda_from_delta(Delta, pivot_scale = 1.1, offpivot_scale = 0.5)
-  Sigma <- make_sigma_diag(p, random = use_random_uniqueness)
+  Delta <- make_delta_from_pivots(m, H, pivots, below_probs)
+  Lambda <- make_lambda_from_delta(Delta)
+  Sigma <- diag(1,m)
 
   list(
     Delta = Delta,
@@ -293,20 +242,20 @@ generate_scenario4 <- function(p, k) {
     pivots = pivots,
     below_probs = below_probs
   )
-}
+  }
 
 
 ## -------------------------------- ##
 ## 3. Scenario dispatcher function  ##
 ## -------------------------------- ##
 
-generate_scenario <- function(scenario, p, k) {
+generate_scenario <- function(scenario, m, H) {
   switch(
     scenario,
-    scenario1_few_dense_columns = generate_scenario1(p, k),
-    scenario2_sparse_below      = generate_scenario2(p, k),
-    scenario3_block_covariance  = generate_scenario3(p, k),
-    scenario4_many_sparse_columns = generate_scenario4(p, k),
+    scenario1_few_dense_columns = generate_scenario1(m, H),
+    scenario2_sparse_below      = generate_scenario2(m, H),
+    scenario3_block_covariance  = generate_scenario3(m, H),
+    scenario4_many_sparse_columns = generate_scenario4(m, H),
     stop("Unknown scenario: ", scenario)
   )
 }
@@ -426,4 +375,4 @@ write.csv(
 )
 
 cat("\nSimulation study completed.\n")
-cat("Results saved in:", normalizePath(out_dir), "\n")
+  cat("Results saved in:", normalizePath(out_dir), "\n")
