@@ -30,7 +30,7 @@ y <- t(Lambda_true %*% Eta_true) +
   matrix(rnorm(T_obs * m, sd = sqrt(sigma2_true)), T_obs, m, byrow = TRUE)
 Delta <- matrix(as.integer(Lambda_true != 0), m, H)
 
-prior_full <- list(a_nu = 1, b_nu = q, alpha = 1, beta = 1,
+prior_full <- list(a_nu = 1, b_nu = 1, alpha = 1, beta = 1,
                    kappa = 1, a_sigma = 1, b_sigma = 0.3)
 
 # -----------------------------------------------------------------------------

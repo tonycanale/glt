@@ -1,7 +1,6 @@
 ############################################################
-# sim_gltfa.R
-# Simulation script for Gaussian factor models with
-# generalized lower-triangular flavored loading structures.
+#
+# Simulate scenario and data
 #
 ############################################################
 
@@ -261,9 +260,9 @@ generate_scenario4 <- function(m, H) {
 
 
 
-## --------------------------------------------- ##
-## Simulate data over all configurations         ##
-## --------------------------------------------- ##
+## ------------------------------------------------ ##
+## 3. Simulate data over all configurations         ##
+## ------------------------------------------------ ##
 
 # Scenario 1 -------------------------------------------------------
 for(dimens in 1:3){
@@ -356,23 +355,3 @@ for(dimens in 1:3){
     }
     }
   }
-
-
-
-## -------------------------------- ##
-## 6. Build a simple summary table  ##
-## -------------------------------- ##
-
-meta_table <- do.call(
-  rbind,
-  lapply(all_results, function(x) x$meta)
-)
-
-write.csv(
-  meta_table,
-  file = file.path(out_dir, "simulation_index.csv"),
-  row.names = FALSE
-)
-
-cat("\nSimulation study completed.\n")
-  cat("Results saved in:", normalizePath(out_dir), "\n")
