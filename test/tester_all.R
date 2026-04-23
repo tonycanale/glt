@@ -3,7 +3,7 @@
 # =============================================================================
 
 devtools::load_all("/Users/antonio/github/gltfactor/", recompile = TRUE)
-#devtools::load_all("/Users/antonio/github/gltf/", recompile = TRUE)
+#devtools::load_all("/Users/antonio/github/glt/", recompile = TRUE)
 
 # -----------------------------------------------------------------------------
 # 1.  Data-generating process

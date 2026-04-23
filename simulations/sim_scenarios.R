@@ -9,12 +9,10 @@ rm(list = ls())
 
 ## ----------------------------- ##
 ## 0. User-facing configuration ##
-## ----------------------------- ##
-
-set.seed(123)
+## ----------------------------- ##ì
 
 # Output directory
-out_dir <- "sim_gltfa_output"
+out_dir <- "simulated_data"
 if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 
 # Number of replicates
@@ -22,7 +20,7 @@ n_reps <- 20
 
 # Dimensions 
 m_dim <- c(20, 50, 100)
-T_dim <- c(m_dim, 2 * m_dim)
+T_dim <- cbind(m_dim, 2 * m_dim)
 H_dim <- matrix(
   c(3,8,10,
     5,10,15,
@@ -36,15 +34,14 @@ scenario_names <- c(
   "scenario1_few_dense_columns",
   "scenario2_sparse_below", # similar to Sylvia's scenario 
   "scenario3_block_covariance",
-  "scenario4_many_sparse_columns". ## H < (m-1)/2
+  "scenario4_many_sparse_columns" ## H < (m-1)/2
 )
 
 ## -------------------------------- ##
 ## 1. Helper functions: basic tools ##
 ## -------------------------------- ##
 
-# Build a m x H indicator matrix Delta with ordered pivots.
-# pivots must be strictly increasing integers in 1:m.
+# Build a m x H indicator matrix Delta with ordered pivots and given nonzero probabilities below pivots.
 make_delta_from_pivots <- function(m, H, pivots, below_probs) {
   stopifnot(length(pivots) == H)
   stopifnot(length(below_probs) == H)
@@ -68,13 +65,11 @@ make_delta_from_pivots <- function(m, H, pivots, below_probs) {
   Delta
 }
 
-# Given Delta, generate Lambda with Gaussian nonzero loadings.
-# Signs are random; pivot entries are made reasonably strong.
-make_lambda_from_delta <- function(Delta, negative_prob = 0.1,
-  mean =1, sd = 0.1){
+# Given Delta, generate Lambda with Gaussian nonzero loadings and negative signes with some probability.
+make_lambda_from_delta <- function(Delta, negative_prob = 0.1, mean =1, sd = 0.1){
   m <- nrow(Delta)
   H <- ncol(Delta)
-  Lambda <- matrix( rnorm(m * H, mean = mean, sd = sd),
+  Lambda <- matrix(rnorm(m * H, mean = mean, sd = sd),
     nrow = m, ncol = H)
   Lambda_neg <- matrix(sample(c(-1,1),m * H, replace = TRUE, 
     prob = c(negative_prob, 1 - negative_prob)),
@@ -86,7 +81,6 @@ make_lambda_from_delta <- function(Delta, negative_prob = 0.1,
 
 # Simulate Gaussian factor model data:
 # y_t = Lambda eta_t + eps_t
-# Returns y as n x p
 simulate_factor_data <- function(n, Lambda, Sigma) {
   m <- nrow(Lambda)
   H <- ncol(Lambda)
@@ -103,7 +97,7 @@ simulate_factor_data <- function(n, Lambda, Sigma) {
   Y
 }
 
-# Convenience wrapper to package truth
+# Wrapper to package truth
 make_truth_object <- function(Lambda, Sigma, scenario, n, 
   rep_id, m, H, pivots, below_probs) {
   list(
@@ -126,14 +120,13 @@ make_truth_object <- function(Lambda, Sigma, scenario, n,
 ## ---------------------------------------- ##
 
 # Scenario 1:
-# lower triangular factor loading not sparse below
-# different sparsity between columns, with a few dense columns
+# lower triangular dense factor loading
 generate_scenario1 <- function(m, H) {
   # this is exactly PLT
   pivots <- seq_len(H)
   
   # few dense columns, others moderately sparse
-  Delta <- make_delta_from_pivots(m, H, pivots, 0.95)
+  Delta <- make_delta_from_pivots(m, H, pivots, rep(0.95,H))
   Lambda <- make_lambda_from_delta(Delta)
   Sigma <- diag(1,m)
 
@@ -142,18 +135,28 @@ generate_scenario1 <- function(m, H) {
     Lambda = Lambda,
     Sigma = Sigma,
     pivots = pivots,
-    below_probs = below_probs
+    below_probs = rep(0.95,H)
   )
 }
 
 # Scenario 2:
 # lower triangular factor loading sparse below
-generate_scenario2 <- function(m, H,m, pivots) {
+generate_scenario2 <- function(m, H) {
+
+  pivots <- c(1, 3, 5, 7, 9)
+  if(H==10) pivots <- c(pivots, 10, 11, 13, 14, 17)
+  if(H==15) pivots <- c(pivots, 10, 11, 13, 14, 17, 19, 20,21,22, 23)
   
   # all columns sparse below pivot
   below_probs <- rep(0.5, H)
 
   Delta <- make_delta_from_pivots(m, H, pivots, below_probs)
+  Delta[which(rowSums(Delta) == 0),1] <- 1 # check for empty rows, if any, put a 1
+  while(!counting_rule_holds(Delta)) {
+    Delta <- make_delta_from_pivots(m, H, pivots, below_probs)
+    Delta[which(rowSums(Delta) == 0),1] <- 1 # check for empty rows, if any, put a 1
+  }
+
   Lambda <- make_lambda_from_delta(Delta)
   Sigma <- diag(1,m)
 
@@ -211,8 +214,8 @@ Delta3[71:75,11:15] <- Delta3[71:75,11:15]*lower.tri(Delta3[71:75,11:15],
 
 generate_scenario3 <- function(Delta) {
   
-  Lambda <- make_lambda_from_delta(Delta, pivot_scale = 1.1, 
-    offpivot_scale = 0.5)
+  Lambda <- make_lambda_from_delta(Delta)
+    
   Sigma <- diag(1,nrow(Delta))
 
   list(
@@ -223,15 +226,27 @@ generate_scenario3 <- function(Delta) {
     below_probs = 1
   )
 }
+
 # Scenario 4:
 # many columns and many zeroes below columns
 # different degrees of sparsity, many sparse columns
-generate_scenario4 <- function(m, H, m, pivots) {
+generate_scenario4 <- function(m, H) {
   
+  # this is exactly PLT
+  pivots <- seq_len(H)
+  
+
   # all columns sparse below pivot
   below_probs <- seq(0.15, 0.40, length.out = H)
 
+
   Delta <- make_delta_from_pivots(m, H, pivots, below_probs)
+  Delta[which(rowSums(Delta) == 0),1] <- 1 # check for empty rows, if any, put a 1
+  while(!counting_rule_holds(Delta)) {
+    Delta <- make_delta_from_pivots(m, H, pivots, below_probs)  
+  Delta[which(rowSums(Delta) == 0),1] <- 1 # check for empty rows, if any, put a 1
+  }
+  
   Lambda <- make_lambda_from_delta(Delta)
   Sigma <- diag(1,m)
 
@@ -245,118 +260,98 @@ generate_scenario4 <- function(m, H, m, pivots) {
   }
 
 
-## -------------------------------- ##
-## 3. Scenario dispatcher function  ##
-## -------------------------------- ##
-
-generate_scenario <- function(scenario, m, H) {
-  switch(
-    scenario,
-    scenario1_few_dense_columns = generate_scenario1(m, H),
-    scenario2_sparse_below      = generate_scenario2(m, H),
-    scenario3_block_covariance  = generate_scenario3(m, H),
-    scenario4_many_sparse_columns = generate_scenario4(m, H),
-    stop("Unknown scenario: ", scenario)
-  )
-}
-
-
-## ------------------------------- ##
-## 4. Run one simulation instance  ##
-## ------------------------------- ##
-
-run_one_simulation <- function(scenario, n, p, k, rep_id) {
-  scen <- generate_scenario(scenario, p, k)
-
-  Y <- simulate_factor_data(
-    n = n,
-    Lambda = scen$Lambda,
-    Sigma = scen$Sigma
-  )
-
-  # Run your function exactly as requested
-  fit <- gltfa(
-    y = Y,
-    mcmc = list(),
-    prior = list()
-  )
-
-  truth <- make_truth_object(
-    Lambda = scen$Lambda,
-    Sigma = scen$Sigma,
-    scenario = scenario,
-    n = n,
-    rep_id = rep_id,
-    p = p,
-    k = k,
-    pivots = scen$pivots,
-    below_probs = scen$below_probs
-  )
-
-  list(
-    meta = data.frame(
-      scenario = scenario,
-      n = n,
-      p = p,
-      k = k,
-      rep = rep_id,
-      stringsAsFactors = FALSE
-    ),
-    y = Y,
-    truth = truth,
-    fit = fit
-  )
-}
-
 
 ## --------------------------------------------- ##
-## 5. Full simulation loop over all configurations ##
+## Simulate data over all configurations         ##
 ## --------------------------------------------- ##
 
-all_results <- vector("list", length = 0)
-counter <- 1
-
-for (scenario in scenario_names) {
-  for (dd in dim_grid) {
-    p <- dd$p
-    k <- dd$k
-
-    for (n in sample_sizes) {
-      for (rep_id in seq_len(n_reps)) {
-        cat(
-          sprintf(
-            "Running: scenario=%s | p=%d | k=%d | n=%d | rep=%d\n",
-            scenario, p, k, n, rep_id
-          )
-        )
-
-        res <- run_one_simulation(
-          scenario = scenario,
-          n = n,
-          p = p,
-          k = k,
-          rep_id = rep_id
-        )
-
-        all_results[[counter]] <- res
-        counter <- counter + 1
-
-        # save each run immediately for safety
-        file_stub <- sprintf(
-          "%s_p%d_k%d_n%d_rep%03d",
-          scenario, p, k, n, rep_id
-        )
-        saveRDS(
-          res,
-          file = file.path(out_dir, paste0(file_stub, ".rds"))
-        )
-      }
+# Scenario 1 -------------------------------------------------------
+for(dimens in 1:3){
+  for(samplesize in 1:2){
+    cat("\nSimulating scenario 1 with m =", m_dim[dimens], "H =", H_dim[1,dimens], "T =", T_dim[dimens,samplesize], "\n")
+    for (rep in seq_len(n_reps)) {
+      sc <- generate_scenario1(m_dim[dimens], H_dim[1,dimens])
+      Y  <- simulate_factor_data(T_dim[dimens,samplesize], sc$Lambda, sc$Sigma)
+      write.csv(Y, file = file.path(out_dir,
+        sprintf("scenario1_Y_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[1,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+      write.csv(sc$Delta, file = file.path(out_dir,
+        sprintf("scenario1_Delta_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[1,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+      write.csv(sc$Lambda, file = file.path(out_dir,
+        sprintf("scenario1_Lambda_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[1,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+    }
     }
   }
-}
 
-# Save all results together as well
-saveRDS(all_results, file = file.path(out_dir, "all_results.rds"))
+# Scenario 2 -------------------------------------------------------
+# H_dim[2,]: H values for scenario2; H must be 5, 10, or 15 (pivots are hardcoded inside)
+for(dimens in 1:3){
+  for(samplesize in 1:2){
+    cat("\nSimulating scenario 2 with m =", m_dim[dimens], "H =", H_dim[2,dimens], "T =", T_dim[dimens,samplesize], "\n")
+    for (rep in seq_len(n_reps)) {
+      sc <- generate_scenario2(m_dim[dimens], H_dim[2,dimens])
+      Y  <- simulate_factor_data(T_dim[dimens,samplesize], sc$Lambda, sc$Sigma)
+      write.csv(Y, file = file.path(out_dir,
+        sprintf("scenario2_Y_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[2,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+      write.csv(sc$Delta, file = file.path(out_dir,
+        sprintf("scenario2_Delta_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[2 ,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+      write.csv(sc$Lambda, file = file.path(out_dir,
+        sprintf("scenario2_Lambda_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[2,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+    }
+    }
+  }
+
+
+# Scenario 3 -------------------------------------------------------
+# Uses pre-built Delta1 (m=20), Delta2 (m=50), Delta3 (m=100)
+# H_dim[3,] values are implicit in Delta dimensions
+for(dimens in 1:3){
+  for(samplesize in 1:2){
+    cat("\nSimulating scenario 3 with m =", m_dim[dimens], "H =", H_dim[2,dimens], "T =", T_dim[dimens,samplesize], "\n")
+    for (rep in seq_len(n_reps)) {
+      if(dimens==1) sc <- generate_scenario3(Delta1)
+      if(dimens==2) sc <- generate_scenario3(Delta2)
+      if(dimens==3) sc <- generate_scenario3(Delta3)
+      Y  <- simulate_factor_data(T_dim[dimens,samplesize], sc$Lambda, sc$Sigma)
+      write.csv(Y, file = file.path(out_dir,
+        sprintf("scenario3_Y_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[3,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+      write.csv(sc$Delta, file = file.path(out_dir,
+        sprintf("scenario3  _Delta_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[3,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+      write.csv(sc$Lambda, file = file.path(out_dir,
+        sprintf("scenario3_Lambda_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[3,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+    }
+    }
+  }
+
+# Scenario 4 -------------------------------------------------------
+# H_dim[4,]: H values for scenario4
+# Pivots: PLT
+for(dimens in 1:3){
+  for(samplesize in 1:2){
+    cat("\nSimulating scenario 1 with m =", m_dim[dimens], "H =", H_dim[4,dimens], "T =", T_dim[dimens,samplesize], "\n")
+    for (rep in seq_len(n_reps)) {
+      sc <- generate_scenario4(m_dim[dimens], H_dim[4,dimens])
+      Y  <- simulate_factor_data(T_dim[dimens,samplesize], sc$Lambda, sc$Sigma)
+      write.csv(Y, file = file.path(out_dir,
+        sprintf("scenario4_Y_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[4,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+      write.csv(sc$Delta, file = file.path(out_dir,
+        sprintf("scenario4_Delta_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[4,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+      write.csv(sc$Lambda, file = file.path(out_dir,
+        sprintf("scenario4_Lambda_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[4,dimens], T_dim[dimens,samplesize], rep)),
+        row.names = FALSE)
+    }
+    }
+  }
 
 
 ## -------------------------------- ##

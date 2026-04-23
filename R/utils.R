@@ -344,3 +344,19 @@ gltfa_process_control <- function(control, verbose) {
 
   control
 }
+
+
+# get pivot function
+get_pivots <- function(Delta) {
+  if (!is.matrix(Delta)) {
+    stop("`Delta` must be a matrix.", call. = FALSE)
+  }
+  pivots <- apply(Delta, 2L, match, x = 1L)
+  if (length(pivots) != length(unique(pivots))) {
+    stop("Pivots need to be on different rows.", call. = FALSE)
+  }
+  if (anyNA(pivots)) {
+    stop("Each column of `Delta` must contain at least one 1 to define a pivot.", call. = FALSE)
+  }
+  as.integer(pivots)
+}
