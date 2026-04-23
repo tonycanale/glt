@@ -270,6 +270,7 @@ for(dimens in 1:3){
   for(samplesize in 1:2){
     cat("\nSimulating scenario 1 with m =", m_dim[dimens], "H =", H_dim[1,dimens], "T =", T_dim[dimens,samplesize], "\n")
     for (rep in seq_len(n_reps)) {
+      set.seed(dimens + samplesize + rep) # ensure different seed for each scenario and replicate
       sc <- generate_scenario1(m_dim[dimens], H_dim[1,dimens])
       Y  <- simulate_factor_data(T_dim[dimens,samplesize], sc$Lambda, sc$Sigma)
       write.csv(Y, file = file.path(out_dir,
@@ -291,6 +292,7 @@ for(dimens in 1:3){
   for(samplesize in 1:2){
     cat("\nSimulating scenario 2 with m =", m_dim[dimens], "H =", H_dim[2,dimens], "T =", T_dim[dimens,samplesize], "\n")
     for (rep in seq_len(n_reps)) {
+      set.seed(dimens + samplesize + rep) # ensure different seed for each scenario and replicate
       sc <- generate_scenario2(m_dim[dimens], H_dim[2,dimens])
       Y  <- simulate_factor_data(T_dim[dimens,samplesize], sc$Lambda, sc$Sigma)
       write.csv(Y, file = file.path(out_dir,
@@ -314,6 +316,7 @@ for(dimens in 1:3){
   for(samplesize in 1:2){
     cat("\nSimulating scenario 3 with m =", m_dim[dimens], "H =", H_dim[2,dimens], "T =", T_dim[dimens,samplesize], "\n")
     for (rep in seq_len(n_reps)) {
+      set.seed(dimens + samplesize + rep) # ensure different seed for each scenario and replicate
       if(dimens==1) sc <- generate_scenario3(Delta1)
       if(dimens==2) sc <- generate_scenario3(Delta2)
       if(dimens==3) sc <- generate_scenario3(Delta3)
@@ -336,8 +339,9 @@ for(dimens in 1:3){
 # Pivots: PLT
 for(dimens in 1:3){
   for(samplesize in 1:2){
-    cat("\nSimulating scenario 1 with m =", m_dim[dimens], "H =", H_dim[4,dimens], "T =", T_dim[dimens,samplesize], "\n")
+    cat("\nSimulating scenario 4 with m =", m_dim[dimens], "H =", H_dim[4,dimens], "T =", T_dim[dimens,samplesize], "\n")
     for (rep in seq_len(n_reps)) {
+      set.seed(dimens + samplesize + rep) # ensure different seed for each scenario and replicate
       sc <- generate_scenario4(m_dim[dimens], H_dim[4,dimens])
       Y  <- simulate_factor_data(T_dim[dimens,samplesize], sc$Lambda, sc$Sigma)
       write.csv(Y, file = file.path(out_dir,
@@ -352,6 +356,7 @@ for(dimens in 1:3){
     }
     }
   }
+
 
 
 ## -------------------------------- ##
