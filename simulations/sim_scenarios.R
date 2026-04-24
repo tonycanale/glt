@@ -324,7 +324,7 @@ for(dimens in 1:3){
         sprintf("scenario3_Y_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[3,dimens], T_dim[dimens,samplesize], rep)),
         row.names = FALSE)
       write.csv(sc$Delta, file = file.path(out_dir,
-        sprintf("scenario3  _Delta_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[3,dimens], T_dim[dimens,samplesize], rep)),
+        sprintf("scenario3_Delta_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[3,dimens], T_dim[dimens,samplesize], rep)),
         row.names = FALSE)
       write.csv(sc$Lambda, file = file.path(out_dir,
         sprintf("scenario3_Lambda_m%d_H%d_T%d_rep%02d.csv", m_dim[dimens], H_dim[3,dimens], T_dim[dimens,samplesize], rep)),
