@@ -7,49 +7,138 @@
 gltfa(
   y,
   mcmc = list(),
-  Hmax = NULL,
+  Hmax = ncol(y),
   prior = list(),
   init = list(),
   control = list(),
+  fixed = list(),
   verbose = interactive()
 )
 }
 \arguments{
-\item{y}{A numeric data matrix with observations in rows and variables in columns. `NA`` not admitted for now}
+\item{y}{A numeric \eqn{T \times m} data matrix with observations in rows
+and variables in columns. Missing values are not supported.}
 
-\item{mcmc}{A named list containing MCMC settings:
+\item{mcmc}{A named list of MCMC settings. Recognised fields:
 \describe{
-\item{\code{niter}}{total number of MCMC iterations.}
-\item{\code{nburn}}{number of burn-in iterations.}
-\item{\code{thin}}{thinning interval.}
+\item{\code{niter}}{Positive integer. Total number of MCMC iterations.
+Default \code{5000}.}
+\item{\code{nburn}}{Non-negative integer. Number of burn-in iterations to
+discard. Must be strictly less than \code{niter}. Default \code{2500}.}
+\item{\code{thin}}{Positive integer. Thinning interval. Default \code{1}.}
 }}
 
-\item{Hmax}{A conservative upper bound for the number of factors \code{H}.
-The default is \code{2 * ncol(y)}.}
+\item{Hmax}{A positive integer giving a conservative upper bound for the
+number of active factors. Default \code{ncol(y)}.}
 
-\item{prior}{A named list of prior hyperparameters.}
+\item{prior}{A named list of prior hyperparameters. Recognised fields:
+\describe{
+\item{\code{a_nu}}{Positive numeric. First shape of the Beta prior on the
+global inclusion probability \eqn{\nu}. Default \code{1}.}
+\item{\code{b_nu}}{Positive numeric. Second shape of the Beta prior on
+\eqn{\nu}. Default \code{1}.}
+\item{\code{alpha}}{Positive numeric. Shape of the Gamma prior on pivot
+loadings. Default \code{1}.}
+\item{\code{beta}}{Positive numeric. Rate of the Gamma prior on pivot
+loadings. Default \code{1}.}
+\item{\code{kappa}}{Positive numeric. Precision of the normal prior on
+non-pivot loadings. Default \code{1}.}
+\item{\code{a_sigma}}{Positive numeric. Shape of the inverse-Gamma prior on
+idiosyncratic variances \eqn{\sigma^2_i}. Default \code{2}.}
+\item{\code{b_sigma}}{Positive numeric. Scale of the inverse-Gamma prior on
+\eqn{\sigma^2_i}. Default \code{2}.}
+}}
 
-\item{init}{A named list of initial values for the sampler.}
+\item{init}{A named list of initial values for the sampler. Recognised
+fields:
+\describe{
+\item{\code{H}}{Single non-negative integer. Initial number of active factors.}
+\item{\code{Lambda}}{Numeric \eqn{m \times H} loading matrix.}
+\item{\code{Delta}}{Integer \eqn{m \times H} binary allocation matrix with
+entries in \eqn{\{0,1\}}.}
+\item{\code{Eta}}{Numeric \eqn{H \times T} factor score matrix.}
+\item{\code{ell}}{Integer vector of length \eqn{H} with pivot row indices.}
+\item{\code{tau}}{Numeric vector of length \eqn{H} with initial
+column-specific inclusion probabilities.}
+\item{\code{nu}}{Single numeric in \eqn{(0,1)}. Initial global sparsity
+parameter.}
+\item{\code{sigma2}}{Positive numeric vector of length \eqn{m}. Initial
+idiosyncratic variances.}
+}}
 
-\item{control}{A named list of algorithmic and storage options.}
+\item{control}{A named list of algorithmic and storage options. Recognised
+fields:
+\describe{
+\item{\code{store_draws}}{Logical. Whether to store posterior draws of
+\code{Lambda}, \code{Delta}, \code{sigma2}, and \code{H}.
+Default \code{TRUE}.}
+\item{\code{store_eta}}{Logical. Whether to additionally store draws of the
+factor score matrix \code{Eta}. Default \code{FALSE}.}
+\item{\code{print_every}}{Positive integer. Print progress every this many
+iterations (only when \code{verbose = TRUE}). Default \code{100}.}
+\item{\code{seed}}{Single integer or \code{NULL}. Random seed for the C++
+sampler. Default \code{NULL}.}
+}}
 
-\item{verbose}{Logical; whether to print sampling progress.}
+\item{fixed}{A named list of logical flags indicating which MCMC updates to
+skip. For example, \code{list(H = TRUE)} keeps the number of factors fixed
+at its initial value throughout sampling.}
+
+\item{verbose}{Logical. Whether to print sampling progress to the console.
+Defaults to \code{interactive()}.}
 }
 \value{
-An object of class \code{"gltfit"} containing processed inputs,
-model metadata, and later the output of the internal sampler.
+An object of class \code{"gltfit"}, a named list with components:
+\describe{
+\item{\code{draws}}{A named list of posterior draws (if \code{control$store_draws = TRUE}):
+\code{Lambda} (\eqn{m \times H_{\max} \times n_{\text{save}}}),
+\code{Delta} (\eqn{m \times H_{\max} \times n_{\text{save}}}),
+\code{sigma2} (\eqn{m \times n_{\text{save}}}),
+\code{H} (\eqn{n_{\text{save}}}), and optionally
+\code{Eta} (\eqn{H_{\max} \times T \times n_{\text{save}}}).}
+\item{\code{meta}}{A named list with \code{nsave}, \code{Hmax}, \code{T}, \code{m}.}
+\item{\code{input}}{A named list echoing the processed \code{mcmc}, \code{prior},
+\code{control}, and \code{fixed} arguments.}
+\item{\code{call}}{The matched call.}
+}
 }
 \description{
-Fits a Bayesian Gaussian factor model under a GLT process prior using MCMC.
-This is the main user-facing entry point of the package and will call
-an internal Rcpp sampler.
+Fits a Bayesian Gaussian factor model under a Generalized Lower Triangular
+(GLT) process prior using an MCMC sampler implemented in C++ via Rcpp.
+This is the main user-facing entry point of the package.
 }
 \details{
+The model is:
+\deqn{y_t = \Lambda \eta_t + \epsilon_t, \quad \epsilon_t \sim N_m(0, \Sigma)}
+where \eqn{\Lambda} is a sparse lower-triangular loading matrix controlled
+by a binary allocation matrix \eqn{\Delta}, and
+\eqn{\Sigma = \mathrm{diag}(\sigma^2_1, \ldots, \sigma^2_m)}.
+
 Notation and dimensions:
 \itemize{
-\item \code{y} is a numeric matrix of dimension \verb{T x m}.
-\item \code{Lambda} is a loading matrix of dimension \verb{m x H}.
-\item \code{Delta} is a binary allocation matrix of dimension \verb{m x H}.
-\item \code{Eta} is a factor score matrix of dimension \verb{H x T}.
+\item \code{y} is a numeric matrix of dimension \eqn{T \times m}.
+\item \code{Lambda} is a loading matrix of dimension \eqn{m \times H}.
+\item \code{Delta} is a binary allocation matrix of dimension \eqn{m \times H}.
+\item \code{Eta} is a factor score matrix of dimension \eqn{H \times T}.
 }
+}
+\examples{
+\dontrun{
+set.seed(42)
+Y <- matrix(rnorm(200 * 10), nrow = 200, ncol = 10)
+
+fit <- gltfa(
+  y       = Y,
+  mcmc    = list(niter = 2000, nburn = 1000, thin = 1),
+  Hmax    = 5,
+  prior   = list(a_sigma = 2, b_sigma = 1),
+  init    = list(H = 2),
+  control = list(store_draws = TRUE, seed = 1L),
+  verbose = FALSE
+)
+}
+
+}
+\seealso{
+\code{\link[=get_variance]{get_variance()}}, \code{\link[=get_pivots]{get_pivots()}}, \code{\link[=plot_real_matrix]{plot_real_matrix()}}
 }

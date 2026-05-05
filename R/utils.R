@@ -1,4 +1,31 @@
+#' Validate and complete initial values for the MCMC sampler
+#'
+#' Processes the user-supplied `init` list, fills in defaults, checks
+#' cross-dimensional consistency, and coerces types as required by
+#' [gltfa_cpp()].
+#'
+#' @param init A named list of initial values. Recognised fields are:
+#' \describe{
+#'   \item{`H`}{Single nonnegative integer. Initial number of active factors.}
+#'   \item{`Lambda`}{Numeric `m x H` loading matrix.}
+#'   \item{`Delta`}{Integer `m x H` binary allocation matrix with entries in `{0,1}`.}
+#'   \item{`Eta`}{Numeric `H x T` factor score matrix.}
+#'   \item{`ell`}{Integer vector of length `H` with pivot row indices.}
+#'   \item{`tau`}{Numeric vector of length `H` with initial inclusion probabilities.}
+#'   \item{`nu`}{Single numeric in `(0, 1)`. Initial global sparsity parameter.}
+#'   \item{`sigma2`}{Positive numeric vector of length `m`. Initial idiosyncratic variances.}
+#' }
+#' @param T Integer. Number of observations (`nrow(y)`).
+#' @param m Integer. Number of variables (`ncol(y)`).
+#' @param Hmax Integer. Maximum number of factors.
+#'
+#' @return A validated and coerced named list ready to be passed to
+#'   [gltfa_cpp()].
+#'
+#' @keywords internal
+#' @noRd
 gltfa_process_init <- function(init, T, m, Hmax) {
+  # ...existing code...
   init_defaults <- list(
     H = NULL,
     nu = NULL,
@@ -152,7 +179,28 @@ gltfa_process_init <- function(init, T, m, Hmax) {
   init
 }
 
+#' Validate and complete MCMC settings
+#'
+#' Processes the user-supplied `mcmc` list, fills in defaults, validates types
+#' and ranges, and computes `nsave`.
+#'
+#' @param mcmc A named list with any subset of:
+#' \describe{
+#'   \item{`niter`}{Positive integer. Total number of MCMC iterations.
+#'     Default `5000`.}
+#'   \item{`nburn`}{Non-negative integer. Number of burn-in iterations to
+#'     discard. Must be strictly less than `niter`. Default `2500`.}
+#'   \item{`thin`}{Positive integer. Thinning interval. Default `1`.}
+#' }
+#'
+#' @return A validated named list with entries `niter`, `nburn`, and `thin`
+#'   (all integers). The derived quantity `nsave` is computed internally but
+#'   not returned (it is recomputed inside [gltfa_cpp()]).
+#'
+#' @keywords internal
+#' @noRd
 gltfa_process_mcmc <- function(mcmc) {
+  # ...existing code...
   if (!is.list(mcmc)) {
     stop("`mcmc` must be a named list.", call. = FALSE)
   }
@@ -204,15 +252,43 @@ gltfa_process_mcmc <- function(mcmc) {
     )
   }
 
-  # nsave is validated here but NOT passed to gltfa_cpp — the C++ function
-  # derives it internally as (niter - nburn) %/% thin.
   mcmc$nsave <- NULL
 
   mcmc
 }
 
 
+#' Validate and complete prior hyperparameters
+#'
+#' Processes the user-supplied `prior` list, fills in defaults, and validates
+#' all hyperparameters. Aliases `a_sigma`/`b_sigma` as `a_s`/`b_s` for
+#' internal C++ functions.
+#'
+#' @param prior A named list with any subset of:
+#' \describe{
+#'   \item{`a_nu`}{Positive numeric. First shape of the Beta prior on `nu`.
+#'     Default `1`.}
+#'   \item{`b_nu`}{Positive numeric. Second shape of the Beta prior on `nu`.
+#'     Default `1`.}
+#'   \item{`alpha`}{Positive numeric. Shape parameter of the Gamma prior on
+#'     factor loadings. Default `1`.}
+#'   \item{`beta`}{Positive numeric. Rate parameter of the Gamma prior on
+#'     factor loadings. Default `1`.}
+#'   \item{`kappa`}{Positive numeric. Precision of the normal prior on
+#'     non-pivot loadings. Default `1`.}
+#'   \item{`a_sigma`}{Positive numeric. Shape of the inverse-Gamma prior on
+#'     idiosyncratic variances. Default `2`.}
+#'   \item{`b_sigma`}{Positive numeric. Scale of the inverse-Gamma prior on
+#'     idiosyncratic variances. Default `2`.}
+#' }
+#'
+#' @return A validated named list with all hyperparameters plus aliases
+#'   `a_s = a_sigma` and `b_s = b_sigma`.
+#'
+#' @keywords internal
+#' @noRd
 gltfa_process_prior <- function(prior) {
+  # ...existing code...
   if (!is.list(prior)) {
     stop("`prior` must be a named list.", call. = FALSE)
   }
@@ -256,33 +332,44 @@ gltfa_process_prior <- function(prior) {
     }
   }
 
-  if (prior$a_nu <= 0) {
-    stop("`prior$a_nu` must be positive.", call. = FALSE)
-  }
-  if (prior$b_nu <= 0) {
-    stop("`prior$b_nu` must be positive.", call. = FALSE)
-  }
-  if (prior$alpha <= 0) {
-    stop("`prior$alpha` must be positive.", call. = FALSE)
-  }
-  if (prior$beta <= 0) {
-    stop("`prior$beta` must be positive.", call. = FALSE)
-  }
-  if (prior$kappa <= 0) {
-    stop("`prior$kappa` must be positive.", call. = FALSE)
-  }
-  if (prior$a_sigma <= 0) {
-    stop("`prior$a_sigma` must be positive.", call. = FALSE)
-  }
-  if (prior$b_sigma <= 0) {
-    stop("`prior$b_sigma` must be positive.", call. = FALSE)
-  }
+  if (prior$a_nu <= 0)    stop("`prior$a_nu` must be positive.",    call. = FALSE)
+  if (prior$b_nu <= 0)    stop("`prior$b_nu` must be positive.",    call. = FALSE)
+  if (prior$alpha <= 0)   stop("`prior$alpha` must be positive.",   call. = FALSE)
+  if (prior$beta <= 0)    stop("`prior$beta` must be positive.",    call. = FALSE)
+  if (prior$kappa <= 0)   stop("`prior$kappa` must be positive.",   call. = FALSE)
+  if (prior$a_sigma <= 0) stop("`prior$a_sigma` must be positive.", call. = FALSE)
+  if (prior$b_sigma <= 0) stop("`prior$b_sigma` must be positive.", call. = FALSE)
 
   prior
 }
 
 
+#' Validate and complete algorithmic control options
+#'
+#' Processes the user-supplied `control` list, fills in defaults, validates
+#' types, and appends the `verbose` flag.
+#'
+#' @param control A named list with any subset of:
+#' \describe{
+#'   \item{`store_draws`}{Logical. Whether to store posterior draws of
+#'     `Lambda`, `Delta`, `sigma2`, and `H`. Default `TRUE`.}
+#'   \item{`store_eta`}{Logical. Whether to additionally store draws of the
+#'     factor score matrix `Eta`. Default `FALSE`.}
+#'   \item{`print_every`}{Positive integer. Print a progress message every
+#'     this many iterations (only when `verbose = TRUE`). Default `100`.}
+#'   \item{`seed`}{Single integer or `NULL`. Random seed passed to the C++
+#'     sampler for reproducibility. Default `NULL`.}
+#' }
+#' @param verbose Logical. Whether to print sampling progress. Inherited from
+#'   the `verbose` argument of [gltfa()].
+#'
+#' @return A validated named list with all control options plus
+#'   `control$verbose`.
+#'
+#' @keywords internal
+#' @noRd
 gltfa_process_control <- function(control, verbose) {
+  # ...existing code...
   if (!is.list(control)) {
     stop("`control` must be a named list.", call. = FALSE)
   }
@@ -346,7 +433,17 @@ gltfa_process_control <- function(control, verbose) {
 }
 
 
-# get pivot function
+#' Extract pivot row indices from a Delta matrix
+#'
+#' For each column of `Delta`, returns the row index of the first `1`, which
+#' defines the pivot row for that factor.
+#'
+#' @param Delta An `m x H` integer matrix with entries in `{0, 1}`. Each column
+#'   must contain at least one `1`.
+#'
+#' @return An integer vector of length `H`.
+#'
+#' @export
 get_pivots <- function(Delta) {
   if (!is.matrix(Delta)) {
     stop("`Delta` must be a matrix.", call. = FALSE)
