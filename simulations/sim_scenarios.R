@@ -5,13 +5,13 @@
 ############################################################
 
 rm(list = ls())
-
+library(sparvaride)
 ## ----------------------------- ##
 ## 0. User-facing configuration ##
 ## ----------------------------- ##ì
 
 # Output directory
-out_dir <- "simulated_data"
+out_dir <- "simulated_data_4"
 if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 
 # Number of replicates
@@ -19,12 +19,12 @@ n_reps <- 20
 
 # Dimensions 
 m_dim <- c(20, 50, 100)
-T_dim <- cbind(m_dim, 2 * m_dim)
+T_dim <- cbind(rep(100,3), rep(200,3))
 H_dim <- matrix(
   c(3,8,10,
-    5,10,15,
-    5,10,15,
-    8, 20, 40),
+    4,10,15,
+    4,10,15,
+    7, 15, 30),
   nrow = 4, ncol = 3, byrow = TRUE
 )
 
@@ -65,7 +65,7 @@ make_delta_from_pivots <- function(m, H, pivots, below_probs) {
 }
 
 # Given Delta, generate Lambda with Gaussian nonzero loadings and negative signes with some probability.
-make_lambda_from_delta <- function(Delta, negative_prob = 0.1, mean =1, sd = 0.1){
+make_lambda_from_delta_old <- function(Delta, negative_prob = 0.1, mean =1, sd = sqrt(0.1)){
   m <- nrow(Delta)
   H <- ncol(Delta)
   Lambda <- matrix(rnorm(m * H, mean = mean, sd = sd),
@@ -77,6 +77,37 @@ make_lambda_from_delta <- function(Delta, negative_prob = 0.1, mean =1, sd = 0.1
   Lambda <- Lambda * Delta
   Lambda
 }
+
+make_lambda_from_delta_old2 <- function(Delta, mean = 0.5, sd = 1, thresh= 0.02){
+  m <- nrow(Delta)
+  H <- ncol(Delta)
+  Lambda <- matrix(rnorm(m * H, mean = mean, sd = sd),
+    nrow = m, ncol = H) * Delta
+  totvar <- (rowSums(Lambda^2) + 1)
+  smallish <- abs(Lambda / matrix(rep(totvar, H),m,H) )
+  small <- (smallish < thresh) & (Lambda != 0)
+  if(any(small)) {
+  Lambda[small] <- (min(abs(totvar)) + 0.000001) * sign(Lambda[small])
+  } 
+  Lambda
+}
+
+make_lambda_from_delta <- function(Delta, sd = sqrt(0.5), thresh= 0.02){
+  m <- nrow(Delta)
+  H <- ncol(Delta)
+  means <- sample(c(0,1.5,-1.5), size=H, replace=TRUE)
+  Lambda <- (matrix(rep(means,each=m),m,H) + matrix(rnorm(m * H, mean = 0, sd = sd),
+    nrow = m, ncol = H, byrow = TRUE)) * Delta
+  totvar <- (rowSums(Lambda^2) + 1)
+  smallish <- abs(Lambda / matrix(rep(totvar, H),m,H) )
+  small <- (smallish < thresh) & (Lambda != 0)
+  if(any(small)) {
+  Lambda[small] <- (min(abs(totvar)) + 0.000001) * sign(Lambda[small])
+  } 
+  Lambda
+}
+
+
 
 # Simulate Gaussian factor model data:
 # y_t = Lambda eta_t + eps_t
@@ -142,9 +173,9 @@ generate_scenario1 <- function(m, H) {
 # lower triangular factor loading sparse below
 generate_scenario2 <- function(m, H) {
 
-  pivots <- c(1, 3, 5, 7, 9)
-  if(H==10) pivots <- c(pivots, 10, 11, 13, 14, 17)
-  if(H==15) pivots <- c(pivots, 10, 11, 13, 14, 17, 19, 20,21,22, 23)
+  pivots <- c(1, 3, 5, 7)
+  if(H==10) pivots <- c(pivots, 9, 10, 11, 13, 14, 17)
+  if(H==15) pivots <- c(pivots, 9, 10, 11, 13, 14, 17, 19, 20,21,22, 23)
   
   # all columns sparse below pivot
   below_probs <- rep(0.5, H)
@@ -186,28 +217,34 @@ generate_delta_scenario3 <- function(m, H, blocks_membership) {
       drop = FALSE]
   Delta
 }
+set.seed(1)
 Delta1 <- generate_delta_scenario3(m = m_dim[1], H = H_dim[3,1],
-  blocks_membership = c(rep(1, 8), rep(2, 6), rep(3, 6)))
-Delta1[1,2] <- Delta1[9,4] <- 0
-Delta1
+  blocks_membership = c(rep(1, 10), rep(2, 10)))
+Delta1[1,2] <- Delta1[11,4] <- 0
+Delta1 |> plot_real_matrix()
+
 Delta2 <- generate_delta_scenario3(m = m_dim[2], H = H_dim[3,2],
-  blocks_membership = c(rep(1, 20), rep(2, 15), rep(3, 15)))
-Delta2[1,2:4] <- 0
-Delta2[2,3:4] <- 0
-Delta2[3,4] <- 0
-Delta2[21,6:8] <- 0
-Delta2[22,7:8] <- 0
-Delta2[23,8] <- 0
-Delta2[36,9:10] <- 0
-Delta2[37,10] <- 0
-Delta2
+  blocks_membership = rep(1:2, each=m_dim[2]/2))
+Delta2[1,2:5] <- 0
+Delta2[2,3:5] <- 0
+Delta2[3,4:5] <- 0
+Delta2[4,5] <- 0
+Delta2[26,7:10] <- 0
+Delta2[27,8:10] <- 0
+Delta2[28,9:10] <- 0
+Delta2[29,10] <- 0
+Delta2 |> plot_real_matrix()
+
 Delta3 <- generate_delta_scenario3(m = m_dim[3], H = H_dim[3,3],
-  blocks_membership = c(rep(1, 40), rep(2, 30), rep(3, 30)))
-Delta3[1:5,1:5] <- Delta3[1:5,1:5]*lower.tri(Delta3[1:5,1:5],
+  blocks_membership = rep(1:4, each=m_dim[3]/4))
+Delta3 |> plot_real_matrix()
+Delta3[1:4,1:4] <- Delta3[1:4,1:4]*lower.tri(Delta3[1:4,1:4],
    diag = TRUE)
-Delta3[41:45,6:10] <- Delta3[41:45,6:10]*lower.tri(Delta3[41:45,6:10],
+Delta3[26:28,5:8] <- Delta3[26:28,5:8]*lower.tri(Delta3[26:28,5:8],
    diag = TRUE)
-Delta3[71:75,11:15] <- Delta3[71:75,11:15]*lower.tri(Delta3[71:75,11:15],
+Delta3[51:54,9:12] <- Delta3[51:54,9:12]*lower.tri(Delta3[51:54,9:12],
+   diag = TRUE)
+Delta3[76:78,13:15] <- Delta3[76:78,13:15]*lower.tri(Delta3[76:78,13:15],
    diag = TRUE)
 
 
@@ -229,14 +266,16 @@ generate_scenario3 <- function(Delta) {
 # Scenario 4:
 # many columns and many zeroes below columns
 # different degrees of sparsity, many sparse columns
-generate_scenario4 <- function(m, H) {
+generate_scenario4_old <- function(m, H, mintau = 0.25, maxtau = 0.4) {
   
   # this is exactly PLT
-  pivots <- seq_len(H)
-  
+  #pivots <- seq_len(H) #OLD
+
+  # Sample H-1 random pivots between 2: H + m/5
+  pivots <- c(1,sort(sample(2:(H + floor(m/5)), H-1)))
 
   # all columns sparse below pivot
-  below_probs <- seq(0.15, 0.40, length.out = H)
+  below_probs <- seq(mintau, maxtau, length.out = H)
 
 
   Delta <- make_delta_from_pivots(m, H, pivots, below_probs)
@@ -259,6 +298,52 @@ generate_scenario4 <- function(m, H) {
   }
 
 
+generate_scenario4 <- function(m, H) {
+  
+  # this is exactly PLT
+  #pivots <- seq_len(H) #OLD
+
+  pivots <- seq(1, H + floor(m/5), length=H)
+  act_loadings <- max(2, floor(m/5))
+  Delta <- make_delta_from_pivots(m, H, pivots, below_probs = rep(0,H))
+  #put `blocksize` ones below each pivot
+  for (j in seq_len(H)) {
+    if(pivots[j] < m) {
+      idx <- (pivots[j] + 1):min(m, pivots[j] + act_loadings)
+      Delta[idx, j] <- 1
+    }
+  }
+  
+  
+  Lambda <- make_lambda_from_delta(Delta)
+  Sigma <- diag(1,m)
+
+  list(
+    Delta = Delta,
+    Lambda = Lambda,
+    Sigma = Sigma,
+    pivots = pivots,
+    below_probs = rep(0,H)
+  )
+  }
+
+
+
+s1 <- generate_scenario1(m_dim[2], H_dim[1,2])
+s2 <- generate_scenario2(m_dim[2], H_dim[2,2])
+s3 <- generate_scenario3(Delta2)
+s4 <- generate_scenario4(m_dim[2], H_dim[4,2])
+
+pdf(file.path(out_dir,"example_plots.pdf"))
+s1$Delta |> plot_real_matrix()
+s1$Lambda |> plot_real_matrix()
+s2$Delta |> plot_real_matrix()
+s2$Lambda |> plot_real_matrix()
+s3$Delta |> plot_real_matrix()
+s3$Lambda |> plot_real_matrix()
+s4$Delta |> plot_real_matrix()
+s4$Lambda |> plot_real_matrix()
+dev.off()
 
 ## ------------------------------------------------ ##
 ## 3. Simulate data over all configurations         ##
@@ -335,7 +420,7 @@ for(dimens in 1:3){
 
 # Scenario 4 -------------------------------------------------------
 # H_dim[4,]: H values for scenario4
-# Pivots: PLT
+# Pivots: Randomly sampled for each replicate, but always between 1 and H + m/5
 for(dimens in 1:3){
   for(samplesize in 1:2){
     cat("\nSimulating scenario 4 with m =", m_dim[dimens], "H =", H_dim[4,dimens], "T =", T_dim[dimens,samplesize], "\n")
