@@ -24,7 +24,7 @@
 #'
 #' @keywords internal
 #' @noRd
-gltfa_process_init <- function(init, T, m, Hmax) {
+gltfa_process_init <- function(init, T, m, Hmax, y = NULL) {
   # ...existing code...
   init_defaults <- list(
     H = NULL,
@@ -174,6 +174,24 @@ gltfa_process_init <- function(init, T, m, Hmax) {
       stop("`init$Delta` must contain only 0/1 entries.", call. = FALSE)
     }
     storage.mode(init$Delta) <- "integer"
+  }
+
+  # -- initialise Eta from its full conditional if not supplied --
+  if (is.null(init$Eta) && !is.null(init$Lambda) &&
+      !is.null(init$sigma2) && !is.null(y)) {
+
+    H0      <- ncol(init$Lambda)
+    Lam     <- init$Lambda                        # m x H
+    sig2    <- init$sigma2                        # m
+    Y       <- t(y)                               # m x T  (y is T x m)
+
+    SiLam   <- Lam / sig2                         # m x H  (Sigma^{-1} Lambda, row-wise)
+    V_inv   <- diag(H0) + crossprod(Lam, SiLam)  # H x H
+    V       <- solve(V_inv)                       # H x H
+    mu_eta  <- V %*% crossprod(SiLam, Y)          # H x T  (posterior mean, one col per obs)
+
+    L       <- t(chol(V))                         # lower Cholesky H x H
+    init$Eta <- mu_eta + L %*% matrix(rnorm(H0 * T), H0, T)
   }
 
   init

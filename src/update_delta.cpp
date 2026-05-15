@@ -64,9 +64,7 @@ arma::imat update_delta_cpp(
     // -----------------------------------------------------------------------
     for (int h = 0; h < n_free; ++h) {
       if (!accepted[h]) continue;
-
       const int i_1based = ell[j] + 1 + h;
-
       // remember ell_j are {1, ..., m} but C indexing starts at 0
       const int cur = Delta(i_1based - 1, j);
       Delta(i_1based - 1, j) = 1 - cur;

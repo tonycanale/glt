@@ -162,11 +162,25 @@ gltfa <- function(
     stop("`fixed` must be a named list.", call. = FALSE)
   }
 
-  # if Delta is fixed, pivots must be fixed too
-  if (isTRUE(fixed$Delta) && !isTRUE(fixed$pivots)) {
-    fixed$pivots <- TRUE
+  # if H is fixed, nu is fixed as well
+  if (isTRUE(fixed$H)) {
+    fixed$nu <- TRUE
   }
 
+  # if pivots are fixed, H and nu are fixed as well
+  if (isTRUE(fixed$pivots)) {
+    fixed$H <- TRUE
+    fixed$nu <- TRUE
+  }
+
+  # if Delta is fixed, pivots, H, tau, and nu are fixed as well
+  if (isTRUE(fixed$Delta)) {
+    fixed$pivots <- TRUE
+    fixed$H <- TRUE
+    fixed$nu <- TRUE
+    fixed$tau <- TRUE
+  }
+  
   if (!is.logical(verbose) || length(verbose) != 1L || is.na(verbose)) {
     stop("`verbose` must be a single TRUE or FALSE.", call. = FALSE)
   }
@@ -179,7 +193,8 @@ gltfa <- function(
     init = init,
     T = T,
     m = m,
-    Hmax = Hmax
+    Hmax = Hmax,
+    y = y
   )
 
    model <- list(
