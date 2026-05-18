@@ -360,12 +360,12 @@ Rcpp::List gltfa_cpp(
                 Rcpp::List Lambda_draw = draws["Lambda"];
                 Rcpp::NumericMatrix sigma2_draw = draws["sigma2"];
                 
-                H_draw[save_idx] = Rcpp::as<int>(last["H"]);
-                nu_draw[save_idx] = Rcpp::as<double>(last["nu"]);
-                ell_draw[save_idx] = last["ell"];
-                tau_draw[save_idx] = last["tau"];
-                Delta_draw[save_idx] = last["Delta"];
-                Lambda_draw[save_idx] = last["Lambda"];
+                H_draw[save_idx]      = Rcpp::as<int>(last["H"]);
+                nu_draw[save_idx]     = Rcpp::as<double>(last["nu"]);
+                ell_draw[save_idx]    = Rcpp::clone(Rcpp::as<Rcpp::IntegerVector>(last["ell"]));
+                tau_draw[save_idx]    = Rcpp::clone(Rcpp::as<Rcpp::NumericVector>(last["tau"]));
+                Delta_draw[save_idx]  = Rcpp::clone(Rcpp::wrap(Rcpp::as<arma::imat>(last["Delta"])));
+                Lambda_draw[save_idx] = Rcpp::clone(Rcpp::wrap(Rcpp::as<arma::mat>(last["Lambda"])));
                 
                 // Write local copies back — Rcpp::List operator[] returns a copy,
                 // not a reference, so assignments above do not modify draws in-place.
@@ -376,7 +376,7 @@ Rcpp::List gltfa_cpp(
                 
                 if (store_eta) {
                   Rcpp::List Eta_draw = draws["Eta"];
-                  Eta_draw[save_idx] = last["Eta"];
+                  Eta_draw[save_idx] = Rcpp::clone(Rcpp::wrap(Rcpp::as<arma::mat>(last["Eta"])));
                   draws["Eta"] = Eta_draw;
                 }
                 

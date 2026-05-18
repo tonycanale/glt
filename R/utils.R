@@ -176,6 +176,16 @@ gltfa_process_init <- function(init, T, m, Hmax, y = NULL) {
     storage.mode(init$Delta) <- "integer"
   }
 
+if (!is.null(init$Delta)) {
+    if(is.null(init$tau)){
+      init$tau <- colSums(init$Delta)/(nrow(init$Delta) - get_pivots(init$Delta)+1)
+    }
+  if(is.null(init$ell)){
+      init$ell <- get_pivots(init$Delta)
+    }
+}
+
+
   # -- initialise Eta from its full conditional if not supplied --
   if (is.null(init$Eta) && !is.null(init$Lambda) &&
       !is.null(init$sigma2) && !is.null(y)) {
