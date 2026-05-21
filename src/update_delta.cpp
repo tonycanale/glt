@@ -21,15 +21,15 @@ arma::imat update_delta_cpp(
 
   arma::imat Delta = Delta_in;
 
+  // extract current pivots (1-based) from the current Delta
+  std::vector<int> ell = pivots_from_delta_1based(Delta);
+
   // Random column order; Rcpp::sample(H, H, false) returns values in {1,...,H}
   Rcpp::IntegerVector jind = Rcpp::sample(H, H, false);
-
-  for (int k = 0; k < H; ++k) {
+  
+    for (int k = 0; k < H; ++k) {
     // convert to 0-based column index
     const int j = jind[k] - 1;
-
-    // extract current pivots (1-based) from the current Delta
-    std::vector<int> ell = pivots_from_delta_1based(Delta);
 
     // ell[j] is 1-based; rows strictly below pivot are ell[j]+1,...,m (1-based)
     // if pivot is already at the last row there is nothing to update
