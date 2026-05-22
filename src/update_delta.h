@@ -9,7 +9,8 @@ arma::imat update_delta_cpp(
     const arma::imat&      Delta_in,
     const arma::mat&       Eta,
     const arma::vec&       tau,
-    const Rcpp::List&      hyperpar
+    const Rcpp::List&      hyperpar,
+    const bool             random_scan = true
 );
 
 #endif

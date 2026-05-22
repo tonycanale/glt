@@ -64,10 +64,11 @@ Rcpp::List gltfa_cpp(
       // ---------------------------------------------------------------------------
         // Control options
       // ---------------------------------------------------------------------------
-        const bool store_draws = get_bool(control, "store_draws");
-      const bool store_eta   = get_bool(control, "store_eta");
-      const int print_every  = get_int(control, "print_every");
-      const bool verbose     = get_bool(control, "verbose");
+        const bool store_draws  = get_bool(control, "store_draws");
+      const bool store_eta    = get_bool(control, "store_eta");
+      const int  print_every  = get_int(control, "print_every");
+      const bool verbose      = get_bool(control, "verbose");
+      const bool random_scan  = get_bool(control, "random_scan");
       
       (void) print_every;
       
@@ -314,7 +315,7 @@ Rcpp::List gltfa_cpp(
                 if (!FIX_Delta) {
                   const arma::vec tau_vec = Rcpp::as<arma::vec>(
                     Rcpp::NumericVector(last["tau"]));
-                  Delta = update_delta_cpp(y, Delta, Eta, tau_vec, prior);
+                  Delta = update_delta_cpp(y, Delta, Eta, tau_vec, prior, random_scan);
                   last["Delta"] = Delta;
                 }
               

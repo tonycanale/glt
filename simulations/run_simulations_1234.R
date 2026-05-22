@@ -6,24 +6,27 @@
 
 devtools::load_all("/Users/antonio/github/glt/", recompile = FALSE)
 library(sparvaride)
+
 # ------------------------------------------------------------------ #
 # Configuration (must match sim_scenarios.R)                          #
 # ------------------------------------------------------------------ #
 
-in_dir  <- "simulated_data_3"
-out_dir <- "simulation_results_3"
+in_dir  <- "simulated_data_5"
+out_dir <- "simulation_results_5_e"
 if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 
 n_reps <- 10
-m_dim  <- c(20, 50, 100)
+# Dimensions 
+m_dim <- c(20, 50, 100)
 T_dim <- cbind(rep(100,3), rep(200,3))
-H_dim  <- matrix(
-  c( 3,  8, 10,
-     5, 10, 15,
-     5, 10, 15,
-     8, 20, 40),
+H_dim <- matrix(
+  c(3,8,10,
+    4,10,15,
+    4,10,15,
+    7, 15, 30),
   nrow = 4, ncol = 3, byrow = TRUE
 )
+
 
 
 prior_fixed <- list(a_nu = 1, b_nu = 1, alpha = 1, beta = 1,
@@ -40,7 +43,7 @@ compute_metrics <- function(fit, Lambda_true, Delta_true,
 
   m   <- nrow(Lambda_true)
   H0  <- ncol(Lambda_true)
-  Omega0       <- Lambda_true %*% t(Lambda_true) + diag(Sigma_true)
+  Omega0       <-   Lambda_true %*% t(Lambda_true) + diag(Sigma_true)
   
   Delta_draws  <- fit$draws$Delta    # list of nsave matrices (m x H_s)
   
@@ -48,7 +51,7 @@ compute_metrics <- function(fit, Lambda_true, Delta_true,
   admissible <- rep(TRUE, fit$meta$nsave)
   for(ite in 1:fit$meta$nsave) {
     if(any(rowSums(Delta_draws[[ite]]) == 0)) {
-      admissible[ite] <- FALSE
+      admissible[ite] <- counting_rule_holds(Delta_draws[[ite]][rowSums(Delta_draws[[ite]]) > 0, , drop = FALSE])
     } else {
       admissible[ite] <- counting_rule_holds(Delta_draws[[ite]])
     }
@@ -81,12 +84,12 @@ compute_metrics <- function(fit, Lambda_true, Delta_true,
   }
 
   # -- Stein loss: tr(A B^{-1}) - log|det(A B^{-1})| - m --
-  stein_loss <- function(Omega_hat) {
-    ev <- Re(eigen(Omega_hat %*% solve(Omega0), only.values = TRUE)$values)
-    sum(ev) - sum(log(pmax(ev, .Machine$double.eps))) - m
+  stein_loss <- function(Omega_hat, B=Omega0) {
+    ev <- Re(eigen(Omega_hat %*% solve(B), only.values = TRUE)$values)
+    sum(ev) - sum(log(pmax(ev, .Machine$double.eps))) - nrow(Omega_hat)
   }
 
-  stein_sum <- 0
+  stein_sum <- stein_sum_sigma <- 0
   Delta_acc <- matrix(0, m, H0)
   Delta_acc_aligned <- matrix(0, m, H0)
 
@@ -96,7 +99,8 @@ compute_metrics <- function(fit, Lambda_true, Delta_true,
     sig2_s <- sigma2_draws[s, ]
     Omega_s <- Lam_s %*% t(Lam_s) + diag(sig2_s)
 
-    stein_sum <- stein_sum + stein_loss(Omega_s)
+    stein_sum <- stein_sum + stein_loss(Omega_s, B=Omega0)
+    stein_sum_sigma <- stein_sum_sigma + stein_loss(diag(sig2_s), B=diag(Sigma_true))
 
     Del_s     <- Delta_draws[[s]]
     Delta_acc <- Delta_acc + Del_s
@@ -104,6 +108,7 @@ compute_metrics <- function(fit, Lambda_true, Delta_true,
   }
 
   avg_stein  <- stein_sum / nsave
+  avg_stein_sigma <- stein_sum_sigma / nsave
   Delta_post <- Delta_acc / nsave
   Delta_post_aligned <- Delta_acc_aligned / nsave
 
@@ -129,11 +134,15 @@ compute_metrics <- function(fit, Lambda_true, Delta_true,
  
   auc <- ifelse(is.null(auc), NA_real_, as.numeric(auc))
   auc_aligned <- ifelse(is.null(auc_aligned), NA_real_, as.numeric(auc_aligned))
+  TP <- sum((Delta_post >= 0.5) & (Delta_true == 1))/sum(Delta_true == 1)
+  FP <- sum((Delta_post >= 0.5) & (Delta_true == 0))/sum(Delta_post == 1)
+  
 
-  list(H_median = median(H_draws), 
+  list(H_median =  median(H_draws), 
        H_mode = as.integer(names(which.max(table(H_draws)))), 
        H_true_post_prob = mean(H_draws == H0),
        stein_loss = avg_stein, 
+       stein_loss_sigma = avg_stein_sigma,
        auc = auc,
        auc_aligned = auc_aligned,
        Delta_post_aligned = Delta_post_aligned,
@@ -146,9 +155,9 @@ compute_metrics <- function(fit, Lambda_true, Delta_true,
 
 n_total <-  3 * 2 * n_reps   # scenarios x dims x sample sizes x reps
 results <- matrix(NA_real_, nrow = n_total,
-                  ncol = 12,
+                  ncol = 13,
                   dimnames = list(NULL,
                     c("scenario", "m", "H", "T", "rep",
                       "H_median", "H_mode", "H_true_post_prob", 
-                      "stein_loss", "auc", "auc_aligned", "status")))
+                      "stein_loss", "stein_loss_sigma", "auc", "auc_aligned", "status")))
 idx <- 1L

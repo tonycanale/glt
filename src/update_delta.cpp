@@ -12,7 +12,8 @@ arma::imat update_delta_cpp(
     const arma::imat&  Delta_in,
     const arma::mat&   Eta,
     const arma::vec&   tau,
-    const Rcpp::List&  hyperpar
+    const Rcpp::List&  hyperpar,
+    const bool         random_scan
 ) {
   Rcpp::RNGScope rng_scope;
 
@@ -26,6 +27,7 @@ arma::imat update_delta_cpp(
 
   // Random column order; Rcpp::sample(H, H, false) returns values in {1,...,H}
   Rcpp::IntegerVector jind = Rcpp::sample(H, H, false);
+  if(!random_scan) {jind = Rcpp::seq(1, H);}
   
     for (int k = 0; k < H; ++k) {
     // convert to 0-based column index

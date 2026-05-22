@@ -404,9 +404,10 @@ gltfa_process_control <- function(control, verbose) {
 
   defaults <- list(
     store_draws = TRUE,
-    store_eta = FALSE,
+    store_eta   = FALSE,
     print_every = 100L,
-    seed = NULL
+    seed        = NULL,
+    random_scan = TRUE
   )
 
   control <- utils::modifyList(defaults, control)
