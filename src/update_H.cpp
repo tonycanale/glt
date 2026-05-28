@@ -38,13 +38,13 @@ Rcpp::List update_H_cpp(
   }
   
   int increase = 0;
-  if ((H > 1) && (H < m)) {
+  if ((H > 1) && (ell[H-1] < m)) {
     // increase with probability q, decrease with probability 1 - q
     increase = (R::runif(0.0, 1.0) < q) ? 1 : 0;
   } else if (H == 1) {
     increase = 1;
     q = 1.0;
-  } else if (H == m) {
+  } else if (ell[H-1] == m) {
     // Cannot increase beyond m, so only decrease is possible.
     increase = 0;
     q = 0; //warning q=0 is may cause NaNs in acceptance ratio, but these will be handled by the acceptance logic below.

@@ -45,8 +45,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // update_delta_cpp
-arma::imat update_delta_cpp(const arma::mat& y, const arma::imat& Delta_in, const arma::mat& Eta, const arma::vec& tau, const Rcpp::List& hyperpar);
-RcppExport SEXP _gltfactor_update_delta_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP EtaSEXP, SEXP tauSEXP, SEXP hyperparSEXP) {
+arma::imat update_delta_cpp(const arma::mat& y, const arma::imat& Delta_in, const arma::mat& Eta, const arma::vec& tau, const Rcpp::List& hyperpar, const bool random_scan);
+RcppExport SEXP _gltfactor_update_delta_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP EtaSEXP, SEXP tauSEXP, SEXP hyperparSEXP, SEXP random_scanSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -55,7 +55,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type Eta(EtaSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type hyperpar(hyperparSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_delta_cpp(y, Delta_in, Eta, tau, hyperpar));
+    Rcpp::traits::input_parameter< const bool >::type random_scan(random_scanSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_delta_cpp(y, Delta_in, Eta, tau, hyperpar, random_scan));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -77,7 +78,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_gltfactor_gltfa_cpp", (DL_FUNC) &_gltfactor_gltfa_cpp, 7},
     {"_gltfactor_update_H_cpp", (DL_FUNC) &_gltfactor_update_H_cpp, 6},
-    {"_gltfactor_update_delta_cpp", (DL_FUNC) &_gltfactor_update_delta_cpp, 5},
+    {"_gltfactor_update_delta_cpp", (DL_FUNC) &_gltfactor_update_delta_cpp, 6},
     {"_gltfactor_update_pivots_cpp", (DL_FUNC) &_gltfactor_update_pivots_cpp, 4},
     {NULL, NULL, 0}
 };
