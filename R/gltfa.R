@@ -162,6 +162,22 @@ gltfa <- function(
     stop("`fixed` must be a named list.", call. = FALSE)
   }
 
+  # if prior$a_alpha or prior$b_alpha is not specified, alpha must be fixed 
+  if (is.null(prior$a_alpha) && is.null(prior$b_alpha)) {
+  fixed$alpha <- TRUE
+    # supply dummy values so C++ get_double() never throws a missing-entry error
+    prior$a_alpha     <- 1.0
+    prior$b_alpha     <- 1.0
+    prior$mh_sd_alpha <- prior$mh_sd_alpha %||% 0.2
+  } else if (is.null(prior$a_alpha) || is.null(prior$b_alpha)) {
+  stop("`prior$a_alpha` and `prior$b_alpha` must be both provided or both NULL.",
+       call. = FALSE)
+} else {
+  if (prior$a_alpha <= 0) stop("`prior$a_alpha` must be positive.", call. = FALSE)
+  if (prior$b_alpha <= 0) stop("`prior$b_alpha` must be positive.", call. = FALSE)
+  fixed$alpha <- FALSE
+}
+
   # if H is fixed, nu is fixed as well
   if (isTRUE(fixed$H)) {
     fixed$nu <- TRUE
@@ -173,12 +189,18 @@ gltfa <- function(
     fixed$nu <- TRUE
   }
 
-  # if Delta is fixed, pivots, H, tau, and nu are fixed as well
+  # if Delta is fixed, pivots, H, tau, alpha, and nu are fixed as well
   if (isTRUE(fixed$Delta)) {
     fixed$pivots <- TRUE
-    fixed$H <- TRUE
-    fixed$nu <- TRUE
-    fixed$tau <- TRUE
+    fixed$H      <- TRUE
+    fixed$nu     <- TRUE
+    fixed$tau    <- TRUE
+    fixed$alpha  <- TRUE   # <<< NEW: no data to update alpha either
+  }
+
+  # if tau is fixed, alpha is fixed too (alpha is only identified through tau/Delta)
+  if (isTRUE(fixed$tau)) {
+    fixed$alpha <- TRUE    # <<< NEW
   }
   
   if (!is.logical(verbose) || length(verbose) != 1L || is.na(verbose)) {

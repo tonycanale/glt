@@ -270,6 +270,32 @@ inline Rcpp::IntegerVector changed_rows_1based(
 //' i_1based : 1-based row index (R convention)
 //' j_0based : 0-based column index (C++ convention)
 //' Used by update_delta_cpp.
+
+//' Log unnormalised posterior for alpha (tau_j marginalised out)
+//'
+//' p(alpha | {d_j, n_j}) propto Ga(alpha; a_alpha, b_alpha)
+//'   * prod_j [ B(alpha*beta + d_j, beta + n_j - d_j) / B(alpha*beta, beta) ]
+//'
+//' d   : column sums of Delta strictly below pivots  (length H)
+//' n   : number of free rows per column              (length H, = m - ell_j)
+inline double log_post_alpha(
+    double             a,
+    const arma::ivec&  d,
+    const arma::ivec&  n,
+    int                H,
+    double             beta,
+    double             a_alpha,
+    double             b_alpha
+) {
+  double lp = (a_alpha - 1.0) * std::log(a) - b_alpha * a;
+  const double ab  = a * beta;
+  const double a1b = (a + 1.0) * beta;
+  for (int j = 0; j < H; ++j)
+    lp += R::lgammafn(ab + d[j]) - R::lgammafn(a1b + n[j]);
+  lp += H * (R::lgammafn(a1b) - R::lgammafn(ab));
+  return lp;
+}
+
 inline double log_post_odds_ij(
     int               i_1based,
     int               j_0based,

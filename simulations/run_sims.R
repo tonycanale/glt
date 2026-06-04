@@ -5,6 +5,8 @@
 ############################################################
 
 source("run_simulations_1234.R")
+Rcpp::sourceCpp("metrics_cpp.cpp")  # once per session
+source("metrics.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

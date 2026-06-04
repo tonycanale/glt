@@ -327,8 +327,12 @@ gltfa_process_prior <- function(prior) {
     alpha   = 1,
     beta    = 1,
     kappa   = 1,
-    a_sigma = 2,
-    b_sigma = 2
+    a_sigma     = 2,
+    b_sigma     = 2,
+    mh_sd_alpha = 0.2,    # RW std dev on log(alpha) scale; tune for ~30-40% acceptance
+    a_alpha = NULL,
+    b_alpha = NULL
+    # no a_alpha / b_alpha defaults since the default is to have alpha fixed
   )
 
   prior <- utils::modifyList(defaults, prior)
@@ -338,8 +342,10 @@ gltfa_process_prior <- function(prior) {
   prior$a_s <- prior$a_sigma
   prior$b_s <- prior$b_sigma
 
-  req_names <- c(names(defaults), "a_s", "b_s")
-  bad_names <- setdiff(names(prior), req_names)
+  req_names <- c(setdiff(names(defaults), c("a_alpha", "b_alpha")), "a_s", "b_s")
+  opt_names <- c("a_alpha", "b_alpha")   # optional: only present when alpha is updated
+
+  bad_names <- setdiff(names(prior), c(req_names, opt_names))
   if (length(bad_names) > 0L) {
     stop(
       paste0(
@@ -360,13 +366,24 @@ gltfa_process_prior <- function(prior) {
     }
   }
 
-  if (prior$a_nu <= 0)    stop("`prior$a_nu` must be positive.",    call. = FALSE)
-  if (prior$b_nu <= 0)    stop("`prior$b_nu` must be positive.",    call. = FALSE)
-  if (prior$alpha <= 0)   stop("`prior$alpha` must be positive.",   call. = FALSE)
-  if (prior$beta <= 0)    stop("`prior$beta` must be positive.",    call. = FALSE)
-  if (prior$kappa <= 0)   stop("`prior$kappa` must be positive.",   call. = FALSE)
-  if (prior$a_sigma <= 0) stop("`prior$a_sigma` must be positive.", call. = FALSE)
-  if (prior$b_sigma <= 0) stop("`prior$b_sigma` must be positive.", call. = FALSE)
+  # Validate optional hyperprior parameters only when supplied
+  if (!is.null(prior$a_alpha)) {
+    if (!is.numeric(prior$a_alpha) || length(prior$a_alpha) != 1L || is.na(prior$a_alpha) || prior$a_alpha <= 0)
+      stop("`prior$a_alpha` must be a single positive numeric value.", call. = FALSE)
+  }
+  if (!is.null(prior$b_alpha)) {
+    if (!is.numeric(prior$b_alpha) || length(prior$b_alpha) != 1L || is.na(prior$b_alpha) || prior$b_alpha <= 0)
+      stop("`prior$b_alpha` must be a single positive numeric value.", call. = FALSE)
+  }
+
+  if (prior$a_nu <= 0)        stop("`prior$a_nu` must be positive.",        call. = FALSE)
+  if (prior$b_nu <= 0)        stop("`prior$b_nu` must be positive.",        call. = FALSE)
+  if (prior$alpha <= 0)       stop("`prior$alpha` must be positive.",       call. = FALSE)
+  if (prior$beta <= 0)        stop("`prior$beta` must be positive.",        call. = FALSE)
+  if (prior$kappa <= 0)       stop("`prior$kappa` must be positive.",       call. = FALSE)
+  if (prior$a_sigma <= 0)     stop("`prior$a_sigma` must be positive.",     call. = FALSE)
+  if (prior$b_sigma <= 0)     stop("`prior$b_sigma` must be positive.",     call. = FALSE)
+  if (prior$mh_sd_alpha <= 0) stop("`prior$mh_sd_alpha` must be positive.", call. = FALSE)
 
   prior
 }
