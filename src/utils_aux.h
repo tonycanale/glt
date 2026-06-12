@@ -296,6 +296,33 @@ inline double log_post_alpha(
   return lp;
 }
 
+//' Log unnormalised posterior for beta (tau_j marginalised out)
+//'
+//' p(beta | {d_j, n_j}) propto Ga(beta; a_beta, b_beta)
+//'   * prod_j [ B(alpha*beta + d_j, beta + n_j - d_j) / B(alpha*beta, beta) ]
+//'
+//' d   : column sums of Delta strictly below pivots  (length H)
+//' n   : number of free rows per column              (length H, = m - ell_j)
+inline double log_post_beta(
+    double             b,
+    const arma::ivec&  d,
+    const arma::ivec&  n,
+    int                H,
+    double             alpha,
+    double             a_beta,
+    double             b_beta
+) {
+  double lp = (a_beta - 1.0) * std::log(b) - b_beta * b;
+  const double ab  = alpha * b;
+  const double a1b = (alpha + 1.0) * b;
+  // normalising terms (shared across j, factored out)
+  lp += H * (R::lgammafn(a1b) - R::lgammafn(ab) - R::lgammafn(b));
+  // data terms: Beta-Binomial marginal (B function numerator terms that depend on b)
+  for (int j = 0; j < H; ++j)
+    lp += R::lgammafn(ab + d[j]) - R::lgammafn(a1b + n[j]) + R::lgammafn(b + n[j] - d[j]);
+  return lp;
+}
+
 inline double log_post_odds_ij(
     int               i_1based,
     int               j_0based,

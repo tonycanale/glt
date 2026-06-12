@@ -5,7 +5,7 @@
 #include "update_delta.h"
 #include "update_Lambda_sigma2.h"
 #include "update_Eta.h"
-#include "update_alpha.h"   // <<< NEW
+#include "update_alpha_beta.h"   // replaces update_alpha.h
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -48,7 +48,7 @@ Rcpp::List gltfa_cpp(
         const double a_nu    = get_double(prior, "a_nu");
       const double b_nu    = get_double(prior, "b_nu");
       double       alpha   = get_double(prior, "alpha");  // mutable – updated by MH
-      const double beta    = get_double(prior, "beta");
+      double       beta    = get_double(prior, "beta");   // mutable – updated by MH
       const double kappa   = get_double(prior, "kappa");
       const double a_sigma = get_double(prior, "a_sigma");
       const double b_sigma = get_double(prior, "b_sigma");
@@ -56,6 +56,10 @@ Rcpp::List gltfa_cpp(
       const double a_alpha     = prior.containsElementNamed("a_alpha")     ? get_double(prior, "a_alpha")     : 1.0;
       const double b_alpha     = prior.containsElementNamed("b_alpha")     ? get_double(prior, "b_alpha")     : 1.0;
       const double mh_sd_alpha = prior.containsElementNamed("mh_sd_alpha") ? get_double(prior, "mh_sd_alpha") : 0.2;
+      // Hyperprior beta ~ Ga(a_beta, b_beta); mh_sd_beta: RW std on log scale
+      const double a_beta      = prior.containsElementNamed("a_beta")      ? get_double(prior, "a_beta")      : 1.0;
+      const double b_beta      = prior.containsElementNamed("b_beta")      ? get_double(prior, "b_beta")      : 1.0;
+      const double mh_sd_beta  = prior.containsElementNamed("mh_sd_beta")  ? get_double(prior, "mh_sd_beta")  : 0.2;
       
       // Avoid unused variable warnings in the stub.
       (void) a_nu;
@@ -96,18 +100,20 @@ Rcpp::List gltfa_cpp(
       bool FIX_Delta = false;
       bool FIX_LambdaSigma = false; // joint flag for sigma2+Lambda update
       bool FIX_Eta = false;
-      bool FIX_alpha = false;   // <<< NEW
-      
+      bool FIX_alpha = false;
+      bool FIX_beta  = false;
+
       if (!fixed.isNULL()) {
-        if (fixed.containsElementNamed("all")) FIX_all = Rcpp::as<bool>(fixed["all"]);
-        if (fixed.containsElementNamed("H")) FIX_H = Rcpp::as<bool>(fixed["H"]);
-        if (fixed.containsElementNamed("nu")) FIX_nu = Rcpp::as<bool>(fixed["nu"]);
-        if (fixed.containsElementNamed("pivots")) FIX_pivots = Rcpp::as<bool>(fixed["pivots"]);
-        if (fixed.containsElementNamed("tau")) FIX_tau = Rcpp::as<bool>(fixed["tau"]);
-        if (fixed.containsElementNamed("alpha")) FIX_alpha = Rcpp::as<bool>(fixed["alpha"]);  // <<< NEW
-        if (fixed.containsElementNamed("Delta")) FIX_Delta = Rcpp::as<bool>(fixed["Delta"]);
-        if (fixed.containsElementNamed("LambdaSigma")) FIX_LambdaSigma = Rcpp::as<bool>(fixed["LambdaSigma"]);
-        if (fixed.containsElementNamed("Eta")) FIX_Eta = Rcpp::as<bool>(fixed["Eta"]);
+        if (fixed.containsElementNamed("all"))          FIX_all          = Rcpp::as<bool>(fixed["all"]);
+        if (fixed.containsElementNamed("H"))            FIX_H            = Rcpp::as<bool>(fixed["H"]);
+        if (fixed.containsElementNamed("nu"))           FIX_nu           = Rcpp::as<bool>(fixed["nu"]);
+        if (fixed.containsElementNamed("pivots"))       FIX_pivots       = Rcpp::as<bool>(fixed["pivots"]);
+        if (fixed.containsElementNamed("tau"))          FIX_tau          = Rcpp::as<bool>(fixed["tau"]);
+        if (fixed.containsElementNamed("alpha"))        FIX_alpha        = Rcpp::as<bool>(fixed["alpha"]);
+        if (fixed.containsElementNamed("beta"))         FIX_beta         = Rcpp::as<bool>(fixed["beta"]);
+        if (fixed.containsElementNamed("Delta"))        FIX_Delta        = Rcpp::as<bool>(fixed["Delta"]);
+        if (fixed.containsElementNamed("LambdaSigma"))  FIX_LambdaSigma  = Rcpp::as<bool>(fixed["LambdaSigma"]);
+        if (fixed.containsElementNamed("Eta"))          FIX_Eta          = Rcpp::as<bool>(fixed["Eta"]);
       }
       
       if (FIX_all) {
@@ -167,6 +173,7 @@ Rcpp::List gltfa_cpp(
           Rcpp::Named("H")      = Rcpp::IntegerVector(nsave, NA_INTEGER),
           Rcpp::Named("nu")     = Rcpp::NumericVector(nsave, NA_REAL),
           Rcpp::Named("alpha")  = Rcpp::NumericVector(nsave, NA_REAL),  // <<< NEW
+          Rcpp::Named("beta")   = Rcpp::NumericVector(nsave, NA_REAL),
           Rcpp::Named("ell")    = Rcpp::List(nsave),
           Rcpp::Named("tau")    = Rcpp::List(nsave),
           Rcpp::Named("Delta")  = Rcpp::List(nsave),
@@ -325,6 +332,15 @@ Rcpp::List gltfa_cpp(
                 }
               
               // ---------------------------------------------------------------------
+                // STEP 4c: Update beta via MH (tau_j marginalised out)
+              // ---------------------------------------------------------------------
+                if (!FIX_beta) {
+                  beta = update_beta_cpp(beta, Delta, ell, m,
+                                         alpha, a_beta, b_beta, mh_sd_beta);
+                  last["beta"] = beta;
+                }
+              
+              // ---------------------------------------------------------------------
                 // STEP 5: Update Delta entries below pivots
               // ---------------------------------------------------------------------
                 if (!FIX_Delta) {
@@ -370,17 +386,17 @@ Rcpp::List gltfa_cpp(
               if (should_save) {
                 Rcpp::IntegerVector H_draw = draws["H"];
                 Rcpp::NumericVector nu_draw = draws["nu"];
-                Rcpp::NumericVector alpha_draw = draws["alpha"];  // <<< NEW
+                Rcpp::NumericVector alpha_draw = draws["alpha"];  
+                Rcpp::NumericVector beta_draw  = draws["beta"];
                 Rcpp::List ell_draw = draws["ell"];
                 Rcpp::List tau_draw = draws["tau"];
                 Rcpp::List Delta_draw = draws["Delta"];
                 Rcpp::List Lambda_draw = draws["Lambda"];
-                Rcpp::NumericMatrix sigma2_draw = draws["sigma2"];
-                
+                Rcpp::NumericMatrix sigma2_draw = draws["sigma2"];          
                 H_draw[save_idx]      = Rcpp::as<int>(last["H"]);
                 nu_draw[save_idx]    = Rcpp::as<double>(last["nu"]);
-                alpha_draw[save_idx] = alpha;                      // <<< NEW
-                draws["alpha"]       = alpha_draw;                 // <<< NEW
+                alpha_draw[save_idx] = alpha;
+                beta_draw[save_idx]  = beta;
                 ell_draw[save_idx]    = Rcpp::clone(Rcpp::as<Rcpp::IntegerVector>(last["ell"]));
                 tau_draw[save_idx]    = Rcpp::clone(Rcpp::as<Rcpp::NumericVector>(last["tau"]));
                 Delta_draw[save_idx]  = Rcpp::clone(Rcpp::wrap(Rcpp::as<arma::imat>(last["Delta"])));
@@ -392,7 +408,9 @@ Rcpp::List gltfa_cpp(
                 draws["tau"]    = tau_draw;
                 draws["Delta"]  = Delta_draw;
                 draws["Lambda"] = Lambda_draw;
-                
+                draws["alpha"]       = alpha_draw;
+                draws["beta"]        = beta_draw;
+
                 if (store_eta) {
                   Rcpp::List Eta_draw = draws["Eta"];
                   Eta_draw[save_idx] = Rcpp::clone(Rcpp::wrap(Rcpp::as<arma::mat>(last["Eta"])));
