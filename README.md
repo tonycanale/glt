@@ -4,16 +4,18 @@
 
 ## Overview
 
-The package `gltfactor` implements Bayesian factor models under a **GLT process prior** by Antonio Canale and Sylvia Fruewirth-Shnatter (currently under development).
+The package `gltfactor` implements Bayesian factor models under a **GLT process prior** by Antonio Canale and Sylvia Fruewirth-Shnatter (currently under development). Still under testing and lacking final cosmetics. 
 
 
 ## Development status 🚧
 
 Current features:
 
-- input validation and preprocessing
-- Rcpp interface and sampler skeleton
-- Updates for: H, pivots, delta (below pivots), tau probability
+- Package skeleton
+- Rcpp interface and sampler skeleton, utils 
+- Updates for: H, pivots, delta (below pivots), tau probability, lambda, eta, nu
+- Hyperpriors for nu, alpha, beta
+
 
 ## Author
 
