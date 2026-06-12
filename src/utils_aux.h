@@ -323,6 +323,33 @@ inline double log_post_beta(
   return lp;
 }
 
+//' Log unnormalised posterior for a_nu (nu marginalised out)
+//'
+//' nu ~ Beta(a_nu, b_nu); H | nu, m ~ Binomial(m, nu)
+//' Marginalising out nu gives Beta-Binomial(m, a_nu, b_nu).
+//' With hyperprior a_nu ~ Ga(a_anu, b_anu):
+//'
+//'   log p(a_nu | H) = (a_anu-1)*log(a_nu) - b_anu*a_nu
+//'                   + lgamma(a_nu + H)       - lgamma(a_nu + b_nu + m)
+//'                   + lgamma(a_nu + b_nu)    - lgamma(a_nu)
+//'
+//' (Binomial coefficient and lgamma(b_nu) terms are constant in a_nu.)
+inline double log_post_a_nu(
+    double a,       // candidate value of a_nu
+    int    H,       // current number of active factors
+    int    m,       // number of variables
+    double b_nu,    // fixed b_nu
+    double a_anu,   // Ga hyperprior shape
+    double b_anu    // Ga hyperprior rate
+) {
+  double lp = (a_anu - 1.0) * std::log(a) - b_anu * a;
+  lp += R::lgammafn(a + H)        // Beta-Binomial numerator
+      - R::lgammafn(a + b_nu + m) // Beta-Binomial denominator
+      + R::lgammafn(a + b_nu)     // Beta normalising: lgamma(a+b)
+      - R::lgammafn(a);           // Beta normalising: -lgamma(a)
+  return lp;
+}
+
 inline double log_post_odds_ij(
     int               i_1based,
     int               j_0based,

@@ -21,6 +21,10 @@ NULL
 
 #' @keywords internal
 #' @noRd
+NULL
+
+#' @keywords internal
+#' @noRd
 update_delta_cpp <- function(y, Delta_in, Eta, tau, hyperpar, random_scan) {
     .Call(`_gltfactor_update_delta_cpp`, y, Delta_in, Eta, tau, hyperpar, random_scan)
 }

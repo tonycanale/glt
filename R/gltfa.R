@@ -190,28 +190,45 @@ gltfa <- function(
     fixed$beta <- FALSE
   }
 
-  # if H is fixed, nu is fixed as well
+  # if prior$a_anu or prior$b_anu is not specified, a_nu is fixed
+  if (is.null(prior$a_anu) && is.null(prior$b_anu)) {
+    fixed$a_nu  <- TRUE
+    prior$a_anu <- 1.0
+    prior$b_anu <- 1.0
+    prior$mh_sd_a_nu <- prior$mh_sd_a_nu %||% 0.2
+  } else if (is.null(prior$a_anu) || is.null(prior$b_anu)) {
+    stop("`prior$a_anu` and `prior$b_anu` must be both provided or both NULL.", call. = FALSE)
+  } else {
+    if (prior$a_anu <= 0) stop("`prior$a_anu` must be positive.", call. = FALSE)
+    if (prior$b_anu <= 0) stop("`prior$b_anu` must be positive.", call. = FALSE)
+    fixed$a_nu <- FALSE
+  }
+
+  # if H is fixed, nu and a_nu are fixed as well
   if (isTRUE(fixed$H)) {
-    fixed$nu <- TRUE
+    fixed$nu   <- TRUE
+    fixed$a_nu <- TRUE
   }
 
-  # if pivots are fixed, H and nu are fixed as well
+  # if pivots are fixed, H, nu and a_nu are fixed as well
   if (isTRUE(fixed$pivots)) {
-    fixed$H <- TRUE
-    fixed$nu <- TRUE
+    fixed$H    <- TRUE
+    fixed$nu   <- TRUE
+    fixed$a_nu <- TRUE
   }
 
-  # if Delta is fixed, pivots, H, tau, alpha, beta and nu are fixed as well
+  # if Delta is fixed, pivots, H, tau, alpha, beta, a_nu and nu are fixed as well
   if (isTRUE(fixed$Delta)) {
     fixed$pivots <- TRUE
     fixed$H      <- TRUE
     fixed$nu     <- TRUE
+    fixed$a_nu   <- TRUE
     fixed$tau    <- TRUE
     fixed$alpha  <- TRUE
     fixed$beta   <- TRUE
   }
 
-  # if tau is fixed, alpha and beta are fixed too (alpha and beta are only identified through tau/Delta)
+  # if tau is fixed, alpha and beta are fixed too
   if (isTRUE(fixed$tau)) {
     fixed$alpha <- TRUE
     fixed$beta  <- TRUE

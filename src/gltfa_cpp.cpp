@@ -5,7 +5,8 @@
 #include "update_delta.h"
 #include "update_Lambda_sigma2.h"
 #include "update_Eta.h"
-#include "update_alpha_beta.h"   // replaces update_alpha.h
+#include "update_alpha_beta.h"  
+#include "update_a_nu.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -45,7 +46,7 @@ Rcpp::List gltfa_cpp(
       // ---------------------------------------------------------------------------
         // Prior hyperparameters
       // ---------------------------------------------------------------------------
-        const double a_nu    = get_double(prior, "a_nu");
+        double       a_nu    = get_double(prior, "a_nu");  // mutable – updated by MH
       const double b_nu    = get_double(prior, "b_nu");
       double       alpha   = get_double(prior, "alpha");  // mutable – updated by MH
       double       beta    = get_double(prior, "beta");   // mutable – updated by MH
@@ -60,9 +61,12 @@ Rcpp::List gltfa_cpp(
       const double a_beta      = prior.containsElementNamed("a_beta")      ? get_double(prior, "a_beta")      : 1.0;
       const double b_beta      = prior.containsElementNamed("b_beta")      ? get_double(prior, "b_beta")      : 1.0;
       const double mh_sd_beta  = prior.containsElementNamed("mh_sd_beta")  ? get_double(prior, "mh_sd_beta")  : 0.2;
-      
+      // Hyperprior a_nu ~ Ga(a_anu, b_anu); mh_sd_a_nu: RW std on log scale
+      const double a_anu       = prior.containsElementNamed("a_anu")       ? get_double(prior, "a_anu")       : 1.0;
+      const double b_anu       = prior.containsElementNamed("b_anu")       ? get_double(prior, "b_anu")       : 1.0;
+      const double mh_sd_a_nu  = prior.containsElementNamed("mh_sd_a_nu")  ? get_double(prior, "mh_sd_a_nu")  : 0.2;
+
       // Avoid unused variable warnings in the stub.
-      (void) a_nu;
       (void) b_nu;
       (void) kappa;
       (void) a_sigma;
@@ -102,6 +106,7 @@ Rcpp::List gltfa_cpp(
       bool FIX_Eta = false;
       bool FIX_alpha = false;
       bool FIX_beta  = false;
+      bool FIX_a_nu  = false;
 
       if (!fixed.isNULL()) {
         if (fixed.containsElementNamed("all"))          FIX_all          = Rcpp::as<bool>(fixed["all"]);
@@ -111,6 +116,7 @@ Rcpp::List gltfa_cpp(
         if (fixed.containsElementNamed("tau"))          FIX_tau          = Rcpp::as<bool>(fixed["tau"]);
         if (fixed.containsElementNamed("alpha"))        FIX_alpha        = Rcpp::as<bool>(fixed["alpha"]);
         if (fixed.containsElementNamed("beta"))         FIX_beta         = Rcpp::as<bool>(fixed["beta"]);
+        if (fixed.containsElementNamed("a_nu"))         FIX_a_nu         = Rcpp::as<bool>(fixed["a_nu"]);
         if (fixed.containsElementNamed("Delta"))        FIX_Delta        = Rcpp::as<bool>(fixed["Delta"]);
         if (fixed.containsElementNamed("LambdaSigma"))  FIX_LambdaSigma  = Rcpp::as<bool>(fixed["LambdaSigma"]);
         if (fixed.containsElementNamed("Eta"))          FIX_Eta          = Rcpp::as<bool>(fixed["Eta"]);
@@ -172,6 +178,7 @@ Rcpp::List gltfa_cpp(
         draws = Rcpp::List::create(
           Rcpp::Named("H")      = Rcpp::IntegerVector(nsave, NA_INTEGER),
           Rcpp::Named("nu")     = Rcpp::NumericVector(nsave, NA_REAL),
+          Rcpp::Named("a_nu")   = Rcpp::NumericVector(nsave, NA_REAL),
           Rcpp::Named("alpha")  = Rcpp::NumericVector(nsave, NA_REAL),  // <<< NEW
           Rcpp::Named("beta")   = Rcpp::NumericVector(nsave, NA_REAL),
           Rcpp::Named("ell")    = Rcpp::List(nsave),
@@ -296,7 +303,15 @@ Rcpp::List gltfa_cpp(
                 if (!FIX_nu) {
                   last["nu"] = R::rbeta(a_nu + H, b_nu + m - H);
                 }
-              
+
+              // ---------------------------------------------------------------------
+                // STEP 2b: Update a_nu via MH (nu marginalised out)
+              // ---------------------------------------------------------------------
+                if (!FIX_a_nu) {
+                  a_nu = update_a_nu_cpp(a_nu, H, m, b_nu, a_anu, b_anu, mh_sd_a_nu);
+                  last["a_nu"] = a_nu;
+                }
+
               // ---------------------------------------------------------------------
                 // STEP 3: Update pivot locations ell
               // ---------------------------------------------------------------------
@@ -385,8 +400,9 @@ Rcpp::List gltfa_cpp(
               
               if (should_save) {
                 Rcpp::IntegerVector H_draw = draws["H"];
-                Rcpp::NumericVector nu_draw = draws["nu"];
-                Rcpp::NumericVector alpha_draw = draws["alpha"];  
+                Rcpp::NumericVector nu_draw    = draws["nu"];
+                Rcpp::NumericVector a_nu_draw  = draws["a_nu"];
+                Rcpp::NumericVector alpha_draw = draws["alpha"];
                 Rcpp::NumericVector beta_draw  = draws["beta"];
                 Rcpp::List ell_draw = draws["ell"];
                 Rcpp::List tau_draw = draws["tau"];
@@ -395,6 +411,7 @@ Rcpp::List gltfa_cpp(
                 Rcpp::NumericMatrix sigma2_draw = draws["sigma2"];          
                 H_draw[save_idx]      = Rcpp::as<int>(last["H"]);
                 nu_draw[save_idx]    = Rcpp::as<double>(last["nu"]);
+                a_nu_draw[save_idx]  = a_nu;
                 alpha_draw[save_idx] = alpha;
                 beta_draw[save_idx]  = beta;
                 ell_draw[save_idx]    = Rcpp::clone(Rcpp::as<Rcpp::IntegerVector>(last["ell"]));

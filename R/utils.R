@@ -331,10 +331,12 @@ gltfa_process_prior <- function(prior) {
     b_sigma     = 2,
     mh_sd_alpha = 0.2,
     mh_sd_beta  = 0.2,
+    mh_sd_a_nu  = 0.2,
     a_alpha     = NULL,
     b_alpha     = NULL,
-    a_beta      = NULL,
-    b_beta      = NULL
+    b_beta      = NULL,
+    a_anu       = NULL,
+    b_anu       = NULL
   )
 
   prior <- utils::modifyList(defaults, prior)
@@ -344,8 +346,8 @@ gltfa_process_prior <- function(prior) {
   prior$a_s <- prior$a_sigma
   prior$b_s <- prior$b_sigma
 
-  req_names <- c(setdiff(names(defaults), c("a_alpha", "b_alpha", "a_beta", "b_beta")), "a_s", "b_s")
-  opt_names <- c("a_alpha", "b_alpha", "a_beta", "b_beta")
+  req_names <- c(setdiff(names(defaults), c("a_alpha", "b_alpha", "a_beta", "b_beta", "a_anu", "b_anu")), "a_s", "b_s")
+  opt_names <- c("a_alpha", "b_alpha", "a_beta", "b_beta", "a_anu", "b_anu")
 
   bad_names <- setdiff(names(prior), c(req_names, opt_names))
   if (length(bad_names) > 0L) {
@@ -385,8 +387,16 @@ gltfa_process_prior <- function(prior) {
     if (!is.numeric(prior$b_beta) || length(prior$b_beta) != 1L || is.na(prior$b_beta) || prior$b_beta <= 0)
       stop("`prior$b_beta` must be a single positive numeric value.", call. = FALSE)
   }
+  if (!is.null(prior$a_anu)) {
+    if (!is.numeric(prior$a_anu) || length(prior$a_anu) != 1L || is.na(prior$a_anu) || prior$a_anu <= 0)
+      stop("`prior$a_anu` must be a single positive numeric value.", call. = FALSE)
+  }
+  if (!is.null(prior$b_anu)) {
+    if (!is.numeric(prior$b_anu) || length(prior$b_anu) != 1L || is.na(prior$b_anu) || prior$b_anu <= 0)
+      stop("`prior$b_anu` must be a single positive numeric value.", call. = FALSE)
+  }
 
-  if (prior$a_nu <= 0)        stop("`prior$a_nu` must be positive.",        call. = FALSE)
+  if (prior$a_nu <= 0)       stop("`prior$a_nu` must be positive.",       call. = FALSE)
   if (prior$b_nu <= 0)        stop("`prior$b_nu` must be positive.",        call. = FALSE)
   if (prior$alpha <= 0)       stop("`prior$alpha` must be positive.",       call. = FALSE)
   if (prior$beta <= 0)        stop("`prior$beta` must be positive.",        call. = FALSE)
