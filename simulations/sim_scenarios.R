@@ -11,11 +11,11 @@ library(sparvaride)
 ## ----------------------------- ##ì
 
 # Output directory
-out_dir <- "simulated_data_4"
+out_dir <- "simulated_data_6"
 if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 
 # Number of replicates
-n_reps <- 20
+n_reps <- 40
 
 # Dimensions 
 m_dim <- c(20, 50, 100)
@@ -95,9 +95,12 @@ make_lambda_from_delta_old2 <- function(Delta, mean = 0.5, sd = 1, thresh= 0.02)
 make_lambda_from_delta <- function(Delta, sd = sqrt(0.5), thresh= 0.02){
   m <- nrow(Delta)
   H <- ncol(Delta)
-  means <- sample(c(0,1.5,-1.5), size=H, replace=TRUE)
+  pivots <- get_pivots(Delta)
+  means <- sample(c(0,1.5,-1.5), prob = c(0.4,0.4,0.2), size=H, replace=TRUE)
   Lambda <- (matrix(rep(means,each=m),m,H) + matrix(rnorm(m * H, mean = 0, sd = sd),
     nrow = m, ncol = H, byrow = TRUE)) * Delta
+  whichpos <- which(means >= 0)
+  Lambda[pivots,whichpos] <- abs(Lambda[pivots,whichpos]) # make pivot loadings positive
   totvar <- (rowSums(Lambda^2) + 1)
   smallish <- abs(Lambda / matrix(rep(totvar, H),m,H) )
   small <- (smallish < thresh) & (Lambda != 0)
@@ -150,10 +153,12 @@ make_truth_object <- function(Lambda, Sigma, scenario, n,
 ## ---------------------------------------- ##
 
 # Scenario 1:
-# lower triangular dense factor loading
+# g. lower triangular dense factor loading
 generate_scenario1 <- function(m, H) {
-  # this is exactly PLT
-  pivots <- seq_len(H)
+  # this was exactly PLT
+  #pivots <- seq_len(H)
+  # now GLT
+  pivots <- c(1, sort(sample(2:(H + floor(m/5)), H-1)))
   
   # few dense columns, others moderately sparse
   Delta <- make_delta_from_pivots(m, H, pivots, rep(0.95,H))
@@ -303,8 +308,8 @@ generate_scenario4 <- function(m, H) {
   # this is exactly PLT
   #pivots <- seq_len(H) #OLD
 
-  pivots <- seq(1, H + floor(m/5), length=H)
-  act_loadings <- max(2, floor(m/5))
+  act_loadings <- max(2, ceiling(m/(H)))
+  pivots <- round(seq(1, m-act_loadings, length.out = H))
   Delta <- make_delta_from_pivots(m, H, pivots, below_probs = rep(0,H))
   #put `blocksize` ones below each pivot
   for (j in seq_len(H)) {
@@ -328,11 +333,12 @@ generate_scenario4 <- function(m, H) {
   }
 
 
-
+set.seed(123)
 s1 <- generate_scenario1(m_dim[2], H_dim[1,2])
 s2 <- generate_scenario2(m_dim[2], H_dim[2,2])
 s3 <- generate_scenario3(Delta2)
 s4 <- generate_scenario4(m_dim[2], H_dim[4,2])
+
 
 pdf(file.path(out_dir,"example_plots.pdf"))
 s1$Delta |> plot_real_matrix()
