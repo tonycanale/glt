@@ -18,38 +18,80 @@
 #' @keywords internal
 #' @noRd
 signed_palette <- function(x,
-                           neg_col = "blue",
+                           neg_col = "red",
                            mid_col = "white",
-                           pos_col = "red",
-                           n = 100) {
-  # ...existing code...
-  cols <- character(length(x))
-  
-  neg_idx <- which(x < 0)
-  pos_idx <- which(x > 0)
-  zero_idx <- which(x == 0)
-  
-  if (length(neg_idx) > 0) {
-    neg_vals <- x[neg_idx]
-    neg_min <- min(neg_vals, na.rm = TRUE)
-    neg_scaled <- (neg_vals - 0) / (neg_min - 0)
-    neg_pal <- colorRampPalette(c(mid_col, neg_col))(n)
-    neg_pos <- pmax(1, pmin(n, round(neg_scaled * (n - 1)) + 1))
-    cols[neg_idx] <- neg_pal[neg_pos]
+                           pos_col = "blue",
+                           n = 100,
+                           log = FALSE,
+                           max_abs = NULL) {
+  if (!is.numeric(x)) {
+    stop("`x` must be numeric.")
   }
-  
-  if (length(pos_idx) > 0) {
-    pos_vals <- x[pos_idx]
-    pos_max <- max(pos_vals, na.rm = TRUE)
-    pos_scaled <- pos_vals / pos_max
-    pos_pal <- colorRampPalette(c(mid_col, pos_col))(n)
-    pos_pos <- pmax(1, pmin(n, round(pos_scaled * (n - 1)) + 1))
-    cols[pos_idx] <- pos_pal[pos_pos]
+
+  if (length(log) != 1L || is.na(log) || !is.logical(log)) {
+    stop("`log` must be either TRUE or FALSE.")
   }
-  
-  cols[zero_idx] <- mid_col
-  cols[is.na(x)] <- NA
-  
+
+  if (length(n) != 1L || n < 2L) {
+    stop("`n` must be an integer greater than one.")
+  }
+
+  cols <- rep(NA_character_, length(x))
+  valid <- !is.na(x)
+
+  if (!any(valid)) {
+    return(cols)
+  }
+
+  if (any(!is.finite(x[valid]))) {
+    stop("`x` must contain only finite values or NA.")
+  }
+
+  if (is.null(max_abs)) {
+    max_abs <- max(abs(x[valid]))
+  } else if (length(max_abs) != 1L ||
+             !is.finite(max_abs) ||
+             max_abs <= 0) {
+    stop("`max_abs` must be a single positive finite number.")
+  }
+
+  # Return the midpoint colour when all entries are zero.
+  if (max_abs == 0) {
+    cols[valid] <- mid_col
+    return(cols)
+  }
+
+  # Common magnitude scale for negative and positive values.
+  magnitude <- pmin(abs(x[valid]), max_abs)
+
+  if (log) {
+    # log1p is defined at zero and preserves zero as the midpoint.
+    scaled <- log1p(magnitude) / log1p(max_abs)
+  } else {
+    scaled <- magnitude / max_abs
+  }
+
+  position <- round(scaled * (n - 1L)) + 1L
+  position <- pmax(1L, pmin(n, position))
+
+  neg_pal <- grDevices::colorRampPalette(
+    c(mid_col, neg_col)
+  )(n)
+
+  pos_pal <- grDevices::colorRampPalette(
+    c(mid_col, pos_col)
+  )(n)
+
+  valid_values <- x[valid]
+  valid_cols <- rep(mid_col, length(valid_values))
+
+  negative <- valid_values < 0
+  positive <- valid_values > 0
+
+  valid_cols[negative] <- neg_pal[position[negative]]
+  valid_cols[positive] <- pos_pal[position[positive]]
+
+  cols[valid] <- valid_cols
   cols
 }
 
@@ -71,6 +113,12 @@ signed_palette <- function(x,
 #' @param ylab Character. Label for the vertical axis. Default `"row"`.
 #' @param asp Numeric. Aspect ratio passed to [plot()]. Default `1`.
 #' @param main Character. Plot title. Default `""`.
+#' @param legend Logical. Whether to draw a colour-scale legend to the right
+#'   of the matrix image. Default `FALSE`.
+#' @param legend_n Integer. Number of colour steps used to build the legend
+#'   gradient. Default `100`.
+#' @param legend_width Numeric. Width of the legend panel in inches.
+#'   Default `1.4`.
 #' @param ... Additional arguments forwarded to `palette_fun`.
 #'
 #' @return Invisibly `NULL`; called for its side effect of producing a plot.
@@ -86,6 +134,12 @@ plot_real_matrix <- function(mat,
                              ylab = "row",
                              asp = 1,
                              main ="",
+                             legend = FALSE,
+                             legend_n = 100,
+                             legend_width = 1.4,
+                             legend_digits = 2,
+                             v_lines = NULL,
+                             h_lines = NULL,
                              ...) {
   # ...existing code...
   if (!is.matrix(mat)) {
@@ -98,6 +152,8 @@ plot_real_matrix <- function(mat,
   nr <- nrow(mat)
   nc <- ncol(mat)
   
+  plot_asp <- if (nr == nc) asp else NA_real_
+  
   cols <- palette_fun(as.vector(mat), ...)
   col_mat <- matrix(cols, nrow = nr, ncol = nc)
   
@@ -107,6 +163,19 @@ plot_real_matrix <- function(mat,
   
   op <- par(no.readonly = TRUE)
   on.exit(par(op))
+  
+if (legend) {
+  device_width <- dev.size("in")[1]
+
+  if (legend_width >= device_width) {
+    stop("`legend_width` must be smaller than the device width.")
+  }
+
+  layout(
+    matrix(1:2, nrow = 1),
+    widths = c(device_width - legend_width, legend_width)
+  )
+}
   
   par(mar = c(4, 4, 2, 2) + 0.1)
   
@@ -119,7 +188,7 @@ plot_real_matrix <- function(mat,
        yaxt = "n",
        bty = "n",
        main = main,
-       asp = asp)
+       asp = plot_asp)
   
   rasterImage(r,
               xleft = 0.5, ybottom = nr + 0.5,
@@ -130,11 +199,68 @@ plot_real_matrix <- function(mat,
     abline(v = seq(0.5, nc + 0.5, by = 1), col = grid_col)
     abline(h = seq(0.5, nr + 0.5, by = 1), col = grid_col)
   }
+
+  if (!is.null(h_lines)) {
+    abline(h = h_lines, col = 1, lty = 2, lwd=1.5)
+  }
   
+  if (!is.null(v_lines)) {
+    abline(v = v_lines, col = 1, lty = 2, lwd=1.5)
+  }
+
   if (axes) {
     axis(1, at = 1:nc, labels = 1:nc)
     axis(2, at = 1:nr, labels = 1:nr, las = 1)
   }
   
   box()
+  
+  if (legend) {
+    vals <- mat[!is.na(mat)]
+    if (length(vals) == 0L) {
+      warning("`mat` has no non-missing values; skipping legend.", call. = FALSE)
+      return(invisible(NULL))
+    }
+    
+    legend_vals <- seq(min(vals), max(vals), length.out = legend_n)
+    legend_cols <- palette_fun(legend_vals, ...)
+    legend_raster <- as.raster(matrix(rev(legend_cols), ncol = 1))
+    
+    par(mar = c(4, 1, 2, 3))
+    
+    plot(NA,
+         xlim = c(0, 1),
+         ylim = c(min(legend_vals), max(legend_vals)),
+         xlab = "",
+         ylab = "",
+         xaxt = "n",
+         yaxt = "n",
+         bty = "n",
+         main = "")
+    
+    rasterImage(legend_raster,
+                xleft = 0, ybottom = min(legend_vals),
+                xright = 1, ytop = max(legend_vals),
+                interpolate = TRUE)
+    
+    legend_ticks <- pretty(range(legend_vals), n = 5)
+legend_ticks <- legend_ticks[
+  legend_ticks >= min(legend_vals) &
+  legend_ticks <= max(legend_vals)
+]
+
+axis(
+  4,
+  at = legend_ticks,
+  labels = formatC(
+    legend_ticks,
+    format = "f",
+    digits = legend_digits
+  ),
+  las = 1
+)
+    box()
+  }
+  
+  invisible(NULL)
 }

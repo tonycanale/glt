@@ -38,7 +38,11 @@ Rcpp::List update_H_cpp(
   }
   
   int increase = 0;
-  if ((H > 1) && (ell[H-1] < m)) {
+  if (H == 0) {
+    // No existing factors: only a birth move is possible.
+    increase = 1;
+    q = 1.0;
+  } else if ((H > 1) && (ell[H-1] < m)) {
     // increase with probability q, decrease with probability 1 - q
     increase = (R::runif(0.0, 1.0) < q) ? 1 : 0;
   } else if (H == 1) {
@@ -60,7 +64,7 @@ Rcpp::List update_H_cpp(
     Deltastar = arma::imat(m, Hstar, arma::fill::zeros);
     for (int j = 0; j < H; ++j) Deltastar.col(j) = Delta.col(j);
     
-    int last_ell = ell[H - 1];
+    int last_ell = (H > 0) ? ell[H - 1] : 0;
     int ellstar = m;
     if (last_ell < m) {
       int start = last_ell + 1;
@@ -98,7 +102,13 @@ Rcpp::List update_H_cpp(
     }
     
     std::vector<int> idx;
-    for (int i = 0; i < m; ++i) if (Delta(i, H - 1) == 1) idx.push_back(i + 1);
+    if (H > 0) {
+      for (int i = 0; i < m; ++i) if (Delta(i, H - 1) == 1) idx.push_back(i + 1);
+    } else {
+      // No previous column exists (H == 0): the rows affected by adding the
+      // very first factor are exactly those activated in the new column.
+      for (int i = 0; i < m; ++i) if (Deltastar(i, Hstar - 1) == 1) idx.push_back(i + 1);
+    }
     Rcpp::IntegerVector indexR = Rcpp::wrap(idx);
     
     Rcpp::NumericVector new_ll = marg_lik(indexR, y, Deltastar, Etastar, hyperpar);

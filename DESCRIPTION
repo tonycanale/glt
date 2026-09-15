@@ -14,4 +14,4 @@ LinkingTo:
 Imports: 
     Rcpp,
     sparvaride
-    
+

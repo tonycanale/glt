@@ -14,6 +14,9 @@ plot_real_matrix(
   ylab = "row",
   asp = 1,
   main = "",
+  legend = FALSE,
+  legend_n = 100,
+  legend_width = 0.15,
   ...
 )
 }
@@ -37,6 +40,16 @@ vector to a character vector of hex colour codes. Defaults to
 \item{asp}{Numeric. Aspect ratio passed to \code{\link[=plot]{plot()}}. Default \code{1}.}
 
 \item{main}{Character. Plot title. Default \code{""}.}
+
+\item{legend}{Logical. Whether to draw a colour-scale legend to the right
+of the matrix image. Default \code{FALSE}.}
+
+\item{legend_n}{Integer. Number of colour steps used to build the legend
+gradient. Default \code{100}.}
+
+\item{legend_width}{Numeric in \verb{(0, 1)}. Fraction of the plotting device
+width allocated to the legend panel when \code{legend = TRUE}. Default
+\code{0.15}.}
 
 \item{...}{Additional arguments forwarded to \code{palette_fun}.}
 }

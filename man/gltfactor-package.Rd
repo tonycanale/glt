@@ -32,4 +32,9 @@ using a diverging palette.}
 \author{
 \strong{Maintainer}: Antonio Canale \email{antonio.canale@unipd.it}
 
+Authors:
+\itemize{
+  \item Antonio Canale \email{antonio.canale@unipd.it}
+}
+
 }

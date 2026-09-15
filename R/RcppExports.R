@@ -5,6 +5,59 @@ gltfa_cpp <- function(y, mcmc, model, prior, init, control, fixed) {
     .Call(`_gltfactor_gltfa_cpp`, y, mcmc, model, prior, init, control, fixed)
 }
 
+#' Fit the STAR-extended GLT factor model to discrete/mixed-scale data
+#'
+#' Implements the Kowal & Canale (2020) simultaneous transformation and
+#' rounding (STAR) approach on top of the existing Gaussian GLT factor
+#' sampler. The observed T x m matrix `y_obs` (0-indexed integer levels,
+#' possibly with a different number of levels per column) is linked to a
+#' continuous latent matrix `z` via
+#'
+#'   y_ij = ell   iff   G_j(z_ij) in [a_{j,ell}, a_{j,ell+1})
+#'   z_ij = x_i' beta_j + epsilon_ij
+#'
+#' where `G_j` is a column-specific monotone transform (`identity` or `exp`),
+#' `{a_{j,ell}}` is a column-specific threshold sequence, and `epsilon`
+#' follows the same sparse factor model as in [gltfa_cpp()]:
+#'
+#'   epsilon_t = Lambda * eta_t + noise_t,   noise_t ~ N(0, diag(sigma2))
+#'
+#' Each MCMC iteration performs two extra steps before the original 8-step
+#' Gibbs sweep:
+#'
+#'   Step 0a: impute z | y_obs, Beta, Lambda, Eta, sigma2  (truncated normal)
+#'   Step 0b: update Beta | z, Lambda, Eta, sigma2          (conjugate normal)
+#'
+#' and then runs Steps 1-8 exactly as in [gltfa_cpp()], operating on the
+#' residual `epsilon = z - X * Beta` in place of the raw data.
+#'
+gltfa_star_cpp <- function(y_obs, X, thresholds, g_type, mcmc, model, prior, init, control, fixed) {
+    .Call(`_gltfactor_gltfa_star_cpp`, y_obs, X, thresholds, g_type, mcmc, model, prior, init, control, fixed)
+}
+
+truncnorm_lg <- function(y_lower, y_upper, mu, sigma, u_rand) {
+    .Call(`_gltfactor_truncnorm_lg`, y_lower, y_upper, mu, sigma, u_rand)
+}
+
+#' Sample from a truncated normal distribution. Samples are drawn
+#' componentwise, so each component of the vector is allowed its own
+#' mean, standard deviation, and upper and lower limits. The components
+#' are assumed to be independent.
+#'
+#' @param y_lower \code{n x p} matrix of lower endpoints
+#' @param y_upper \code{n x p} matrix of upper endpoints
+#' @param mu \code{n x p} matrix of conditional expectations
+#' @param sigma \code{p x 1} vector of conditional standard deviations
+#' @param u_rand \code{n x p} matrix of uniform random variables
+#'
+#' @return z_star \code{n x p} draw from the truncated normal distribution
+#'
+#' @note This function uses \code{Rcpp} for computational efficiency.
+#' Bounds may be \code{-Inf}/\code{Inf}; these are handled correctly by
+#' \code{R::pnorm}/\code{R::qnorm}.
+#'
+NULL
+
 #' @keywords internal
 #' @noRd
 update_H_cpp <- function(y, Delta_in, Eta_in, hyperpar, nu, q = 0.5) {

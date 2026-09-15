@@ -28,6 +28,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// gltfa_star_cpp
+Rcpp::List gltfa_star_cpp(const arma::imat& y_obs, const arma::mat& X, const Rcpp::List& thresholds, const Rcpp::IntegerVector& g_type, const Rcpp::List& mcmc, const Rcpp::List& model, const Rcpp::List& prior, const Rcpp::List& init, const Rcpp::List& control, const Rcpp::List& fixed);
+RcppExport SEXP _gltfactor_gltfa_star_cpp(SEXP y_obsSEXP, SEXP XSEXP, SEXP thresholdsSEXP, SEXP g_typeSEXP, SEXP mcmcSEXP, SEXP modelSEXP, SEXP priorSEXP, SEXP initSEXP, SEXP controlSEXP, SEXP fixedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::imat& >::type y_obs(y_obsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type thresholds(thresholdsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type g_type(g_typeSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type mcmc(mcmcSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type init(initSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type control(controlSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type fixed(fixedSEXP);
+    rcpp_result_gen = Rcpp::wrap(gltfa_star_cpp(y_obs, X, thresholds, g_type, mcmc, model, prior, init, control, fixed));
+    return rcpp_result_gen;
+END_RCPP
+}
+// truncnorm_lg
+arma::mat truncnorm_lg(const arma::mat& y_lower, const arma::mat& y_upper, const arma::mat& mu, const arma::vec& sigma, const arma::mat& u_rand);
+RcppExport SEXP _gltfactor_truncnorm_lg(SEXP y_lowerSEXP, SEXP y_upperSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP u_randSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type y_lower(y_lowerSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type y_upper(y_upperSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type u_rand(u_randSEXP);
+    rcpp_result_gen = Rcpp::wrap(truncnorm_lg(y_lower, y_upper, mu, sigma, u_rand));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_H_cpp
 Rcpp::List update_H_cpp(const arma::mat& y, const arma::imat& Delta_in, const arma::mat& Eta_in, const Rcpp::List& hyperpar, double nu, double q);
 RcppExport SEXP _gltfactor_update_H_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP Eta_inSEXP, SEXP hyperparSEXP, SEXP nuSEXP, SEXP qSEXP) {
@@ -77,6 +112,8 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_gltfactor_gltfa_cpp", (DL_FUNC) &_gltfactor_gltfa_cpp, 7},
+    {"_gltfactor_gltfa_star_cpp", (DL_FUNC) &_gltfactor_gltfa_star_cpp, 10},
+    {"_gltfactor_truncnorm_lg", (DL_FUNC) &_gltfactor_truncnorm_lg, 5},
     {"_gltfactor_update_H_cpp", (DL_FUNC) &_gltfactor_update_H_cpp, 6},
     {"_gltfactor_update_delta_cpp", (DL_FUNC) &_gltfactor_update_delta_cpp, 6},
     {"_gltfactor_update_pivots_cpp", (DL_FUNC) &_gltfactor_update_pivots_cpp, 4},

@@ -133,7 +133,7 @@ fit <- gltfa(
   Hmax    = 5,
   prior   = list(a_sigma = 2, b_sigma = 1),
   init    = list(H = 2),
-  control = list(store_draws = TRUE, seed = 1L),
+  control = list(store_draws = TRUE, seed = 1L, random_scan = TRUE),
   verbose = FALSE
 )
 }
