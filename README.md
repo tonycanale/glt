@@ -15,6 +15,7 @@ Current features:
 - Rcpp interface and sampler skeleton, utils 
 - Updates for: H, pivots, delta (below pivots), tau probability, lambda, eta, nu
 - Hyperpriors for nu, alpha, beta
+- STAR implementation for discrete data (+mean regression)
 
 
 ## Author
