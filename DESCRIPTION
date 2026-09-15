@@ -1,6 +1,6 @@
 Package: gltfactor
 Title: Bayesian Factor Modelling via Generalized Lower Triangular Priors
-Version: 0.0.0.9000
+Version: 1.0
 Authors@R: 
     person("Antonio", "Canale", , "antonio.canale@unipd.it", role = c("aut", "cre"))
 Description: A package for Bayesian factor modelling using generalized lower triangular priors.
