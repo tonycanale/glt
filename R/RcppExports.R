@@ -2,7 +2,7 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 gltfa_cpp <- function(y, mcmc, model, prior, init, control, fixed) {
-    .Call(`_gltfactor_gltfa_cpp`, y, mcmc, model, prior, init, control, fixed)
+    .Call(`_glt_gltfa_cpp`, y, mcmc, model, prior, init, control, fixed)
 }
 
 #' Fit the STAR-extended GLT factor model to discrete/mixed-scale data
@@ -32,11 +32,11 @@ gltfa_cpp <- function(y, mcmc, model, prior, init, control, fixed) {
 #' residual `epsilon = z - X * Beta` in place of the raw data.
 #'
 gltfa_star_cpp <- function(y_obs, X, thresholds, g_type, mcmc, model, prior, init, control, fixed) {
-    .Call(`_gltfactor_gltfa_star_cpp`, y_obs, X, thresholds, g_type, mcmc, model, prior, init, control, fixed)
+    .Call(`_glt_gltfa_star_cpp`, y_obs, X, thresholds, g_type, mcmc, model, prior, init, control, fixed)
 }
 
 truncnorm_lg <- function(y_lower, y_upper, mu, sigma, u_rand) {
-    .Call(`_gltfactor_truncnorm_lg`, y_lower, y_upper, mu, sigma, u_rand)
+    .Call(`_glt_truncnorm_lg`, y_lower, y_upper, mu, sigma, u_rand)
 }
 
 #' Sample from a truncated normal distribution. Samples are drawn
@@ -61,7 +61,7 @@ NULL
 #' @keywords internal
 #' @noRd
 update_H_cpp <- function(y, Delta_in, Eta_in, hyperpar, nu, q = 0.5) {
-    .Call(`_gltfactor_update_H_cpp`, y, Delta_in, Eta_in, hyperpar, nu, q)
+    .Call(`_glt_update_H_cpp`, y, Delta_in, Eta_in, hyperpar, nu, q)
 }
 
 #' @keywords internal
@@ -79,12 +79,12 @@ NULL
 #' @keywords internal
 #' @noRd
 update_delta_cpp <- function(y, Delta_in, Eta, tau, hyperpar, random_scan) {
-    .Call(`_gltfactor_update_delta_cpp`, y, Delta_in, Eta, tau, hyperpar, random_scan)
+    .Call(`_glt_update_delta_cpp`, y, Delta_in, Eta, tau, hyperpar, random_scan)
 }
 
 #' @keywords internal
 #' @noRd
 update_pivots_cpp <- function(y, Delta_in, Eta, hyperpar) {
-    .Call(`_gltfactor_update_pivots_cpp`, y, Delta_in, Eta, hyperpar)
+    .Call(`_glt_update_pivots_cpp`, y, Delta_in, Eta, hyperpar)
 }
 

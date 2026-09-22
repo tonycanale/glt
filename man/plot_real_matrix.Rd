@@ -16,7 +16,10 @@ plot_real_matrix(
   main = "",
   legend = FALSE,
   legend_n = 100,
-  legend_width = 0.15,
+  legend_width = 1.4,
+  legend_digits = 2,
+  v_lines = NULL,
+  h_lines = NULL,
   ...
 )
 }
@@ -47,9 +50,8 @@ of the matrix image. Default \code{FALSE}.}
 \item{legend_n}{Integer. Number of colour steps used to build the legend
 gradient. Default \code{100}.}
 
-\item{legend_width}{Numeric in \verb{(0, 1)}. Fraction of the plotting device
-width allocated to the legend panel when \code{legend = TRUE}. Default
-\code{0.15}.}
+\item{legend_width}{Numeric. Width of the legend panel in inches.
+Default \code{1.4}.}
 
 \item{...}{Additional arguments forwarded to \code{palette_fun}.}
 }

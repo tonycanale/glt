@@ -20,7 +20,7 @@
 #'     using a diverging palette.}
 #' }
 #'
-#' @useDynLib gltfactor, .registration = TRUE
+#' @useDynLib glt, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 #' @importFrom sparvaride sparvaride
 "_PACKAGE"

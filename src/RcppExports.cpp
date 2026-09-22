@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // gltfa_cpp
 Rcpp::List gltfa_cpp(const arma::mat& y, const Rcpp::List& mcmc, const Rcpp::List& model, const Rcpp::List& prior, const Rcpp::List& init, const Rcpp::List& control, const Rcpp::List& fixed);
-RcppExport SEXP _gltfactor_gltfa_cpp(SEXP ySEXP, SEXP mcmcSEXP, SEXP modelSEXP, SEXP priorSEXP, SEXP initSEXP, SEXP controlSEXP, SEXP fixedSEXP) {
+RcppExport SEXP _glt_gltfa_cpp(SEXP ySEXP, SEXP mcmcSEXP, SEXP modelSEXP, SEXP priorSEXP, SEXP initSEXP, SEXP controlSEXP, SEXP fixedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -30,7 +30,7 @@ END_RCPP
 }
 // gltfa_star_cpp
 Rcpp::List gltfa_star_cpp(const arma::imat& y_obs, const arma::mat& X, const Rcpp::List& thresholds, const Rcpp::IntegerVector& g_type, const Rcpp::List& mcmc, const Rcpp::List& model, const Rcpp::List& prior, const Rcpp::List& init, const Rcpp::List& control, const Rcpp::List& fixed);
-RcppExport SEXP _gltfactor_gltfa_star_cpp(SEXP y_obsSEXP, SEXP XSEXP, SEXP thresholdsSEXP, SEXP g_typeSEXP, SEXP mcmcSEXP, SEXP modelSEXP, SEXP priorSEXP, SEXP initSEXP, SEXP controlSEXP, SEXP fixedSEXP) {
+RcppExport SEXP _glt_gltfa_star_cpp(SEXP y_obsSEXP, SEXP XSEXP, SEXP thresholdsSEXP, SEXP g_typeSEXP, SEXP mcmcSEXP, SEXP modelSEXP, SEXP priorSEXP, SEXP initSEXP, SEXP controlSEXP, SEXP fixedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -50,7 +50,7 @@ END_RCPP
 }
 // truncnorm_lg
 arma::mat truncnorm_lg(const arma::mat& y_lower, const arma::mat& y_upper, const arma::mat& mu, const arma::vec& sigma, const arma::mat& u_rand);
-RcppExport SEXP _gltfactor_truncnorm_lg(SEXP y_lowerSEXP, SEXP y_upperSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP u_randSEXP) {
+RcppExport SEXP _glt_truncnorm_lg(SEXP y_lowerSEXP, SEXP y_upperSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP u_randSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -65,7 +65,7 @@ END_RCPP
 }
 // update_H_cpp
 Rcpp::List update_H_cpp(const arma::mat& y, const arma::imat& Delta_in, const arma::mat& Eta_in, const Rcpp::List& hyperpar, double nu, double q);
-RcppExport SEXP _gltfactor_update_H_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP Eta_inSEXP, SEXP hyperparSEXP, SEXP nuSEXP, SEXP qSEXP) {
+RcppExport SEXP _glt_update_H_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP Eta_inSEXP, SEXP hyperparSEXP, SEXP nuSEXP, SEXP qSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -81,7 +81,7 @@ END_RCPP
 }
 // update_delta_cpp
 arma::imat update_delta_cpp(const arma::mat& y, const arma::imat& Delta_in, const arma::mat& Eta, const arma::vec& tau, const Rcpp::List& hyperpar, const bool random_scan);
-RcppExport SEXP _gltfactor_update_delta_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP EtaSEXP, SEXP tauSEXP, SEXP hyperparSEXP, SEXP random_scanSEXP) {
+RcppExport SEXP _glt_update_delta_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP EtaSEXP, SEXP tauSEXP, SEXP hyperparSEXP, SEXP random_scanSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -97,7 +97,7 @@ END_RCPP
 }
 // update_pivots_cpp
 Rcpp::List update_pivots_cpp(const arma::mat& y, const arma::imat& Delta_in, const arma::mat& Eta, const Rcpp::List& hyperpar);
-RcppExport SEXP _gltfactor_update_pivots_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP EtaSEXP, SEXP hyperparSEXP) {
+RcppExport SEXP _glt_update_pivots_cpp(SEXP ySEXP, SEXP Delta_inSEXP, SEXP EtaSEXP, SEXP hyperparSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -111,16 +111,16 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_gltfactor_gltfa_cpp", (DL_FUNC) &_gltfactor_gltfa_cpp, 7},
-    {"_gltfactor_gltfa_star_cpp", (DL_FUNC) &_gltfactor_gltfa_star_cpp, 10},
-    {"_gltfactor_truncnorm_lg", (DL_FUNC) &_gltfactor_truncnorm_lg, 5},
-    {"_gltfactor_update_H_cpp", (DL_FUNC) &_gltfactor_update_H_cpp, 6},
-    {"_gltfactor_update_delta_cpp", (DL_FUNC) &_gltfactor_update_delta_cpp, 6},
-    {"_gltfactor_update_pivots_cpp", (DL_FUNC) &_gltfactor_update_pivots_cpp, 4},
+    {"_glt_gltfa_cpp", (DL_FUNC) &_glt_gltfa_cpp, 7},
+    {"_glt_gltfa_star_cpp", (DL_FUNC) &_glt_gltfa_star_cpp, 10},
+    {"_glt_truncnorm_lg", (DL_FUNC) &_glt_truncnorm_lg, 5},
+    {"_glt_update_H_cpp", (DL_FUNC) &_glt_update_H_cpp, 6},
+    {"_glt_update_delta_cpp", (DL_FUNC) &_glt_update_delta_cpp, 6},
+    {"_glt_update_pivots_cpp", (DL_FUNC) &_glt_update_pivots_cpp, 4},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_gltfactor(DllInfo *dll) {
+RcppExport void R_init_glt(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }
