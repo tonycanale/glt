@@ -146,6 +146,11 @@ gltfa <- function(
     stop("`y` must have at least 1 column.", call. = FALSE)
   }
 
+  if (!is.numeric(Hmax) || length(Hmax) != 1L || is.na(Hmax) || Hmax <= 1) {
+    stop("`Hmax` must be a single number greater than 1.", call. = FALSE)
+  }
+  Hmax <- as.integer(Hmax)
+
   if (!is.list(mcmc)) {
     stop("`mcmc` must be a named list.", call. = FALSE)
   }

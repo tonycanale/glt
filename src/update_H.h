@@ -13,6 +13,7 @@ Rcpp::List update_H_cpp(
     const arma::mat& Eta_in,
     const Rcpp::List& hyperpar,
     double nu,
+    int Hmax,
     double q = 0.5
 );
 

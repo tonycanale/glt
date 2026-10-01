@@ -13,6 +13,7 @@ Rcpp::List update_H_cpp(
     const arma::mat& Eta_in,
     const Rcpp::List& hyperpar,
     double nu,
+    int Hmax,
     double q = 0.5
 ) {
   Rcpp::RNGScope rng;
@@ -42,6 +43,10 @@ Rcpp::List update_H_cpp(
     // No existing factors: only a birth move is possible.
     increase = 1;
     q = 1.0;
+  } else if (H >= Hmax) {
+    // At the ceiling: only a death move is possible, regardless of pivots.
+    increase = 0;
+    q = 0.0;
   } else if ((H > 1) && (ell[H-1] < m)) {
     // increase with probability q, decrease with probability 1 - q
     increase = (R::runif(0.0, 1.0) < q) ? 1 : 0;

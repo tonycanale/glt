@@ -1,8 +1,0 @@
-Github Workflow
-
-git pull si prende quello che c'è su Github
-
-git status
-git add .
-git commit -m "Update analysis and revise section 2"
-git push

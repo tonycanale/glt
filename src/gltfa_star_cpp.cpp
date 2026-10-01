@@ -356,7 +356,7 @@ Rcpp::List gltfa_star_cpp(
             int H_old = H;
             if (!FIX_H) {
               Rcpp::List H_step = update_H_cpp(epsilon, Delta, Eta, prior,
-                                               Rcpp::as<double>(last["nu"]), 0.5);
+                                               Rcpp::as<double>(last["nu"]), Hmax, 0.5);
 
               Delta = Rcpp::as<arma::imat>(H_step["Delta"]);
               Eta   = Rcpp::as<arma::mat>(H_step["Eta"]);

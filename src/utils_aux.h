@@ -376,6 +376,34 @@ inline double log_post_odds_ij(
 }
 
 // ============================================================================
+// POSTERIOR DRAW DIAGNOSTICS
+// ============================================================================
+
+//' Count spurious columns (colSum == 1) for every draw
+//'
+//' A column of Delta with exactly one nonzero entry corresponds to a factor
+//' loading only onto a single variable; such columns are "spurious" in the
+//' sense that they do not represent a shared latent factor. Copied here (from
+//' metrics_cpp.cpp, where it remains the exported `compute_spurious_cpp`) so
+//' other translation units (e.g. summary_gltfit helpers) can reuse it without
+//' an extra .Call() round trip.
+//'
+//' @param Delta_draws list[nsave] of m x H_draw integer matrices
+//' @return Integer vector of length nsave with the spurious-column count per draw
+inline Rcpp::IntegerVector compute_spurious(Rcpp::List Delta_draws) {
+  int n = Delta_draws.size();
+  Rcpp::IntegerVector out(n);
+  for (int i = 0; i < n; i++) {
+    arma::imat D = Rcpp::as<arma::imat>(Delta_draws[i]);
+    int cnt = 0;
+    for (arma::uword k = 0; k < D.n_cols; k++)
+      cnt += (static_cast<int>(arma::accu(D.col(k))) == 1);
+    out[i] = cnt;
+  }
+  return out;
+}
+
+// ============================================================================
 // STATE INITIALIZATION HELPERS 
 // ============================================================================
 

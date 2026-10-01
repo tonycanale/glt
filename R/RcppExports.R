@@ -35,6 +35,14 @@ gltfa_star_cpp <- function(y_obs, X, thresholds, g_type, mcmc, model, prior, ini
     .Call(`_glt_gltfa_star_cpp`, y_obs, X, thresholds, g_type, mcmc, model, prior, init, control, fixed)
 }
 
+compute_spurious_cpp <- function(Delta_draws) {
+    .Call(`_glt_compute_spurious_cpp`, Delta_draws)
+}
+
+compute_metrics_inner_cpp <- function(Lambda_draws, Delta_draws, sigma2_draws, H_draws, Delta_true, Sigma_true, Omega0_r) {
+    .Call(`_glt_compute_metrics_inner_cpp`, Lambda_draws, Delta_draws, sigma2_draws, H_draws, Delta_true, Sigma_true, Omega0_r)
+}
+
 truncnorm_lg <- function(y_lower, y_upper, mu, sigma, u_rand) {
     .Call(`_glt_truncnorm_lg`, y_lower, y_upper, mu, sigma, u_rand)
 }
@@ -60,8 +68,8 @@ NULL
 
 #' @keywords internal
 #' @noRd
-update_H_cpp <- function(y, Delta_in, Eta_in, hyperpar, nu, q = 0.5) {
-    .Call(`_glt_update_H_cpp`, y, Delta_in, Eta_in, hyperpar, nu, q)
+update_H_cpp <- function(y, Delta_in, Eta_in, hyperpar, nu, Hmax, q = 0.5) {
+    .Call(`_glt_update_H_cpp`, y, Delta_in, Eta_in, hyperpar, nu, Hmax, q)
 }
 
 #' @keywords internal

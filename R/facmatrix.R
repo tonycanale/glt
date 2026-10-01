@@ -96,11 +96,53 @@ signed_palette <- function(x,
 }
 
 
+#' Construct a "facmatrix" object
+#'
+#' A thin wrapper that tags a numeric matrix with class `"facmatrix"` so that
+#' it is plotted via [plot.facmatrix()] (a colour-image raster) rather than
+#' via the default matrix print/plot methods.
+#'
+#' @param mat A numeric matrix.
+#'
+#' @return `mat` with class `"facmatrix"` prepended.
+#'
+#' @export
+facmatrix <- function(mat) {
+  if (!is.matrix(mat) || !is.numeric(mat)) {
+    stop("`mat` must be a numeric matrix.", call. = FALSE)
+  }
+  class(mat) <- c("facmatrix", class(mat))
+  mat
+}
+
+
+#' Plot a "facmatrix" object
+#'
+#' S3 `plot` method for objects of class `"facmatrix"`. Renders the matrix as
+#' a colour-image raster using [signed_palette()] by default; see
+#' [plot_real_matrix()] for the full set of supported arguments.
+#'
+#' @param x A `"facmatrix"` object (a numeric matrix with that class).
+#' @param ... Additional arguments passed on to [plot_real_matrix()].
+#'
+#' @return Invisibly `x`; called for its side effect of producing a plot.
+#'
+#' @seealso [plot_real_matrix()], [facmatrix()]
+#' @export
+plot.facmatrix <- function(x, ...) {
+  plot_real_matrix(unclass(x), ...)
+  invisible(x)
+}
+
+
 #' Plot a real-valued matrix as a colour image
 #'
 #' Renders a numeric matrix as a raster image using a diverging colour palette
 #' (via [signed_palette()] by default), with optional grid lines and axis labels.
 #' Rows increase downward (matrix convention).
+#'
+#' This is the internal workhorse used by [plot.facmatrix()]; it remains
+#' available for plotting plain numeric matrices directly.
 #'
 #' @param mat A numeric matrix to plot.
 #' @param palette_fun A function with signature `f(x, ...)` that maps a numeric
