@@ -59,6 +59,15 @@
 #'   `last$epsilon` hold the final latent-z / residual draws (not stored
 #'   across iterations).
 #'
+#' @references
+#' Canale, A. and Frühwirth-Schnatter, S. (2026).
+#' "The generalized lower triangular process prior."
+#' \emph{Technical Report}, 
+#' 
+#' Kowal, D.  and Canale, A. (2020).
+#' "Simultaneous transformation and rounding (STAR) models for integer-valued data."
+#' \emph{Electronic Journal of Statistics}, 14(1), 1744-1772.
+#' 
 #' @seealso [gltfa()]
 #'
 #' @export

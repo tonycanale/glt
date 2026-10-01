@@ -87,6 +87,11 @@ iteration: imputing \code{z} from its truncated-normal full conditional (Step
 normal). The residual \verb{epsilon = z - X Beta} is then fed into the
 unchanged Delta/pivots/H/Lambda/sigma2/Eta updates.
 }
+\references{
+Kowal, D.  and Canale, A. (2020).
+"Simultaneous transformation and rounding (STAR) models for integer-valued data."
+\emph{Electronic Journal of Statistics}, 14(1), 1744-1772.
+}
 \seealso{
 \code{\link[=gltfa]{gltfa()}}
 }

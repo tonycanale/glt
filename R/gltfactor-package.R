@@ -20,7 +20,14 @@
 #'     using a diverging palette.}
 #' }
 #'
+#' @references
+#' Canale, A. and Frühwirth-Schnatter, S. (2026).
+#' "The generalized lower triangular process prior."
+#' \emph{Technical Report}, 
+#' 
 #' @useDynLib glt, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
-#' @importFrom sparvaride sparvaride
+#' @importFrom stats rnorm
+#' @importFrom grDevices as.raster dev.size
+#' @importFrom graphics abline axis box layout par rasterImage
 "_PACKAGE"

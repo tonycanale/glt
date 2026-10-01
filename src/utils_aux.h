@@ -383,10 +383,10 @@ inline double log_post_odds_ij(
 //'
 //' A column of Delta with exactly one nonzero entry corresponds to a factor
 //' loading only onto a single variable; such columns are "spurious" in the
-//' sense that they do not represent a shared latent factor. Copied here (from
-//' metrics_cpp.cpp, where it remains the exported `compute_spurious_cpp`) so
-//' other translation units (e.g. summary_gltfit helpers) can reuse it without
-//' an extra .Call() round trip.
+//' sense that they do not represent a shared latent factor. Exported to R as
+//' `compute_spurious_cpp()` (see compute_spurious.cpp); kept here, inline,
+//' so other translation units can reuse it without an extra .Call() round
+//' trip.
 //'
 //' @param Delta_draws list[nsave] of m x H_draw integer matrices
 //' @return Integer vector of length nsave with the spurious-column count per draw

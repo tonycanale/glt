@@ -119,7 +119,7 @@ facmatrix <- function(mat) {
 #' Plot a "facmatrix" object
 #'
 #' S3 `plot` method for objects of class `"facmatrix"`. Renders the matrix as
-#' a colour-image raster using [signed_palette()] by default; see
+#' a colour-image raster using `signed_palette()` by default; see
 #' [plot_real_matrix()] for the full set of supported arguments.
 #'
 #' @param x A `"facmatrix"` object (a numeric matrix with that class).
@@ -138,7 +138,7 @@ plot.facmatrix <- function(x, ...) {
 #' Plot a real-valued matrix as a colour image
 #'
 #' Renders a numeric matrix as a raster image using a diverging colour palette
-#' (via [signed_palette()] by default), with optional grid lines and axis labels.
+#' (via `signed_palette()` by default), with optional grid lines and axis labels.
 #' Rows increase downward (matrix convention).
 #'
 #' This is the internal workhorse used by [plot.facmatrix()]; it remains
@@ -147,7 +147,7 @@ plot.facmatrix <- function(x, ...) {
 #' @param mat A numeric matrix to plot.
 #' @param palette_fun A function with signature `f(x, ...)` that maps a numeric
 #'   vector to a character vector of hex colour codes. Defaults to
-#'   [signed_palette()].
+#'   `signed_palette()`.
 #' @param draw_grid Logical. Whether to draw cell grid lines. Default `TRUE`.
 #' @param grid_col Character. Colour of the grid lines. Default `"grey80"`.
 #' @param axes Logical. Whether to draw row and column axes. Default `TRUE`.
@@ -161,11 +161,19 @@ plot.facmatrix <- function(x, ...) {
 #'   gradient. Default `100`.
 #' @param legend_width Numeric. Width of the legend panel in inches.
 #'   Default `1.4`.
+#' @param legend_digits Integer. Number of decimal digits shown on the
+#'   legend axis labels. Default `2`.
+#' @param v_lines Numeric vector or `NULL`. Column positions (on the data
+#'   scale) at which to draw dashed vertical reference lines. Default `NULL`
+#'   (no lines).
+#' @param h_lines Numeric vector or `NULL`. Row positions (on the data scale)
+#'   at which to draw dashed horizontal reference lines. Default `NULL` (no
+#'   lines).
 #' @param ... Additional arguments forwarded to `palette_fun`.
 #'
 #' @return Invisibly `NULL`; called for its side effect of producing a plot.
 #'
-#' @seealso [signed_palette()]
+#' @seealso `signed_palette()`
 #' @export
 plot_real_matrix <- function(mat,
                              palette_fun = signed_palette,

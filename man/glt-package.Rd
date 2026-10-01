@@ -29,6 +29,11 @@ using a diverging palette.}
 }
 }
 
+\references{
+Canale, A. and Frühwirth-Schnatter, S. (2026).
+"The generalized lower triangular process prior."
+\emph{Technical Report},
+}
 \author{
 \strong{Maintainer}: Antonio Canale \email{antonio.canale@unipd.it}
 

@@ -11,6 +11,17 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// compute_spurious_cpp
+IntegerVector compute_spurious_cpp(List Delta_draws);
+RcppExport SEXP _glt_compute_spurious_cpp(SEXP Delta_drawsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type Delta_draws(Delta_drawsSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_spurious_cpp(Delta_draws));
+    return rcpp_result_gen;
+END_RCPP
+}
 // gltfa_cpp
 Rcpp::List gltfa_cpp(const arma::mat& y, const Rcpp::List& mcmc, const Rcpp::List& model, const Rcpp::List& prior, const Rcpp::List& init, const Rcpp::List& control, const Rcpp::List& fixed);
 RcppExport SEXP _glt_gltfa_cpp(SEXP ySEXP, SEXP mcmcSEXP, SEXP modelSEXP, SEXP priorSEXP, SEXP initSEXP, SEXP controlSEXP, SEXP fixedSEXP) {
@@ -45,34 +56,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::List& >::type control(controlSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type fixed(fixedSEXP);
     rcpp_result_gen = Rcpp::wrap(gltfa_star_cpp(y_obs, X, thresholds, g_type, mcmc, model, prior, init, control, fixed));
-    return rcpp_result_gen;
-END_RCPP
-}
-// compute_spurious_cpp
-IntegerVector compute_spurious_cpp(List Delta_draws);
-RcppExport SEXP _glt_compute_spurious_cpp(SEXP Delta_drawsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type Delta_draws(Delta_drawsSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_spurious_cpp(Delta_draws));
-    return rcpp_result_gen;
-END_RCPP
-}
-// compute_metrics_inner_cpp
-List compute_metrics_inner_cpp(List Lambda_draws, List Delta_draws, NumericMatrix sigma2_draws, IntegerVector H_draws, IntegerMatrix Delta_true, NumericVector Sigma_true, NumericMatrix Omega0_r);
-RcppExport SEXP _glt_compute_metrics_inner_cpp(SEXP Lambda_drawsSEXP, SEXP Delta_drawsSEXP, SEXP sigma2_drawsSEXP, SEXP H_drawsSEXP, SEXP Delta_trueSEXP, SEXP Sigma_trueSEXP, SEXP Omega0_rSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type Lambda_draws(Lambda_drawsSEXP);
-    Rcpp::traits::input_parameter< List >::type Delta_draws(Delta_drawsSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type sigma2_draws(sigma2_drawsSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type H_draws(H_drawsSEXP);
-    Rcpp::traits::input_parameter< IntegerMatrix >::type Delta_true(Delta_trueSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type Sigma_true(Sigma_trueSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type Omega0_r(Omega0_rSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_metrics_inner_cpp(Lambda_draws, Delta_draws, sigma2_draws, H_draws, Delta_true, Sigma_true, Omega0_r));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -140,10 +123,9 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_glt_compute_spurious_cpp", (DL_FUNC) &_glt_compute_spurious_cpp, 1},
     {"_glt_gltfa_cpp", (DL_FUNC) &_glt_gltfa_cpp, 7},
     {"_glt_gltfa_star_cpp", (DL_FUNC) &_glt_gltfa_star_cpp, 10},
-    {"_glt_compute_spurious_cpp", (DL_FUNC) &_glt_compute_spurious_cpp, 1},
-    {"_glt_compute_metrics_inner_cpp", (DL_FUNC) &_glt_compute_metrics_inner_cpp, 7},
     {"_glt_truncnorm_lg", (DL_FUNC) &_glt_truncnorm_lg, 5},
     {"_glt_update_H_cpp", (DL_FUNC) &_glt_update_H_cpp, 7},
     {"_glt_update_delta_cpp", (DL_FUNC) &_glt_update_delta_cpp, 6},

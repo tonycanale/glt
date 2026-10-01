@@ -28,7 +28,7 @@ plot_real_matrix(
 
 \item{palette_fun}{A function with signature \code{f(x, ...)} that maps a numeric
 vector to a character vector of hex colour codes. Defaults to
-\code{\link[=signed_palette]{signed_palette()}}.}
+\code{signed_palette()}.}
 
 \item{draw_grid}{Logical. Whether to draw cell grid lines. Default \code{TRUE}.}
 
@@ -53,6 +53,17 @@ gradient. Default \code{100}.}
 \item{legend_width}{Numeric. Width of the legend panel in inches.
 Default \code{1.4}.}
 
+\item{legend_digits}{Integer. Number of decimal digits shown on the
+legend axis labels. Default \code{2}.}
+
+\item{v_lines}{Numeric vector or \code{NULL}. Column positions (on the data
+scale) at which to draw dashed vertical reference lines. Default \code{NULL}
+(no lines).}
+
+\item{h_lines}{Numeric vector or \code{NULL}. Row positions (on the data scale)
+at which to draw dashed horizontal reference lines. Default \code{NULL} (no
+lines).}
+
 \item{...}{Additional arguments forwarded to \code{palette_fun}.}
 }
 \value{
@@ -60,7 +71,7 @@ Invisibly \code{NULL}; called for its side effect of producing a plot.
 }
 \description{
 Renders a numeric matrix as a raster image using a diverging colour palette
-(via \code{\link[=signed_palette]{signed_palette()}} by default), with optional grid lines and axis labels.
+(via \code{signed_palette()} by default), with optional grid lines and axis labels.
 Rows increase downward (matrix convention).
 }
 \details{
@@ -68,5 +79,5 @@ This is the internal workhorse used by \code{\link[=plot.facmatrix]{plot.facmatr
 available for plotting plain numeric matrices directly.
 }
 \seealso{
-\code{\link[=signed_palette]{signed_palette()}}
+\code{signed_palette()}
 }

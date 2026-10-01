@@ -10,4 +10,17 @@ export(gltfa)
 export(gltfa_star)
 export(plot_real_matrix)
 importFrom(Rcpp,sourceCpp)
+importFrom(grDevices,
+  as.raster,
+  dev.size
+)
+importFrom(graphics,
+  abline,
+  axis,
+  box,
+  layout,
+  par,
+  rasterImage
+)
+importFrom(stats,rnorm)
 useDynLib(glt, .registration = TRUE)

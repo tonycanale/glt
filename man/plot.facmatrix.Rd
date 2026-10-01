@@ -16,7 +16,7 @@ Invisibly \code{x}; called for its side effect of producing a plot.
 }
 \description{
 S3 \code{plot} method for objects of class \code{"facmatrix"}. Renders the matrix as
-a colour-image raster using \code{\link[=signed_palette]{signed_palette()}} by default; see
+a colour-image raster using \code{signed_palette()} by default; see
 \code{\link[=plot_real_matrix]{plot_real_matrix()}} for the full set of supported arguments.
 }
 \seealso{

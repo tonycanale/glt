@@ -73,7 +73,7 @@ pad_cols <- function(mat, Hmax) {
 #' \code{Delta}, and \code{Omega} matrices are returned with class
 #' \code{"facmatrix"} so they inherit [plot.facmatrix()].
 #'
-#' Before averaging, draws are filtered using [admissible_draws()]: a draw is
+#' Before averaging, draws are filtered using `admissible_draws()`: a draw is
 #' dropped when, after removing spurious columns (loadings on a single
 #' variable) and any resulting all-zero rows, the allocation matrix fails
 #' [sparvaride::counting_rule_holds()]. This mirrors the usual post-processing

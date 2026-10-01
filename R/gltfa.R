@@ -96,6 +96,11 @@
 #'   \item{`call`}{The matched call.}
 #' }
 #'
+#' @references
+#' Canale, A. and Frühwirth-Schnatter, S. (2026).
+#' "The generalized lower triangular process prior."
+#' \emph{Technical Report}, 
+#' 
 #' @seealso [get_variance()], [get_pivots()], [plot_real_matrix()]
 #'
 #' @examples

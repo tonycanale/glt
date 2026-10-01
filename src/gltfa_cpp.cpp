@@ -10,7 +10,8 @@
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-
+//' @keywords internal
+//' @noRd
 // [[Rcpp::export]]
 Rcpp::List gltfa_cpp(
   const arma::mat& y,
@@ -66,12 +67,6 @@ Rcpp::List gltfa_cpp(
       const double b_anu       = prior.containsElementNamed("b_anu")       ? get_double(prior, "b_anu")       : 1.0;
       const double mh_sd_a_nu  = prior.containsElementNamed("mh_sd_a_nu")  ? get_double(prior, "mh_sd_a_nu")  : 0.2;
 
-      // Avoid unused variable warnings in the stub.
-      (void) b_nu;
-      (void) kappa;
-      (void) a_sigma;
-      (void) b_sigma;
-      
       // ---------------------------------------------------------------------------
         // Control options
       // ---------------------------------------------------------------------------

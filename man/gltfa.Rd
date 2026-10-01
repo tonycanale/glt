@@ -139,6 +139,11 @@ fit <- gltfa(
 }
 
 }
+\references{
+Canale, A. and Frühwirth-Schnatter, S. (2026).
+"The generalized lower triangular process prior."
+\emph{Technical Report},
+}
 \seealso{
 \code{\link[=get_variance]{get_variance()}}, \code{\link[=get_pivots]{get_pivots()}}, \code{\link[=plot_real_matrix]{plot_real_matrix()}}
 }

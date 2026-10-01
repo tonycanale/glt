@@ -3,7 +3,9 @@ Title: Bayesian Factor Modelling via Generalized Lower Triangular Priors
 Version: 1.0
 Authors@R: 
     person("Antonio", "Canale", , "antonio.canale@unipd.it", role = c("aut", "cre"))
-Description: A package for Bayesian factor modelling using generalized lower triangular priors.
+Description: Fits Bayesian Gaussian factor models under a generalized lower
+    triangular (GLT) process prior using an MCMC sampler implemented in C++
+    via 'Rcpp'.
 License: GPL-2
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

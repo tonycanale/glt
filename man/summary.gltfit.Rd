@@ -35,7 +35,7 @@ posterior average of \eqn{\Omega = \Lambda \Lambda^\top + \Sigma}, where
 \code{"facmatrix"} so they inherit \code{\link[=plot.facmatrix]{plot.facmatrix()}}.
 }
 \details{
-Before averaging, draws are filtered using \code{\link[=admissible_draws]{admissible_draws()}}: a draw is
+Before averaging, draws are filtered using \code{admissible_draws()}: a draw is
 dropped when, after removing spurious columns (loadings on a single
 variable) and any resulting all-zero rows, the allocation matrix fails
 \code{\link[sparvaride:counting_rule_holds]{sparvaride::counting_rule_holds()}}. This mirrors the usual post-processing

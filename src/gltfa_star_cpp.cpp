@@ -22,11 +22,11 @@
 //' possibly with a different number of levels per column) is linked to a
 //' continuous latent matrix `z` via
 //'
-//'   y_ij = ell   iff   G_j(z_ij) in [a_{j,ell}, a_{j,ell+1})
-//'   z_ij = x_i' beta_j + epsilon_ij
+//' \deqn{y_{ij} = \ell \iff G_j(z_{ij}) \in [a_{j,\ell}, a_{j,\ell+1})}
+//' \deqn{z_{ij} = x_i'\beta_j + \epsilon_{ij}}
 //'
 //' where `G_j` is a column-specific monotone transform (`identity` or `exp`),
-//' `{a_{j,ell}}` is a column-specific threshold sequence, and `epsilon`
+//' the threshold sequence is column-specific, and `epsilon`
 //' follows the same sparse factor model as in [gltfa_cpp()]:
 //'
 //'   epsilon_t = Lambda * eta_t + noise_t,   noise_t ~ N(0, diag(sigma2))
@@ -40,6 +40,8 @@
 //' and then runs Steps 1-8 exactly as in [gltfa_cpp()], operating on the
 //' residual `epsilon = z - X * Beta` in place of the raw data.
 //'
+//' @keywords internal
+//' @noRd
 // [[Rcpp::export]]
 Rcpp::List gltfa_star_cpp(
   const arma::imat& y_obs,        // T x m, 0-indexed levels

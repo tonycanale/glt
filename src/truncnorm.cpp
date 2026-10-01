@@ -2,6 +2,25 @@
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
+//' Sample from a truncated normal distribution
+//'
+//' Samples are drawn componentwise, so each component of the vector is
+//' allowed its own mean, standard deviation, and upper and lower limits. The
+//' components are assumed to be independent.
+//'
+//' @param y_lower `n x p` matrix of lower endpoints
+//' @param y_upper `n x p` matrix of upper endpoints
+//' @param mu `n x p` matrix of conditional expectations
+//' @param sigma `p x 1` vector of conditional standard deviations
+//' @param u_rand `n x p` matrix of uniform random variables
+//'
+//' @return An `n x p` matrix of draws from the truncated normal distribution.
+//'
+//' @note This function uses Rcpp for computational efficiency. Bounds may be
+//'   `-Inf`/`Inf`; these are handled correctly by `R::pnorm`/`R::qnorm`.
+//'
+//' @keywords internal
+//' @noRd
 // [[Rcpp::export]]
 arma::mat truncnorm_lg(const arma::mat& y_lower, const arma::mat& y_upper,
                        const arma::mat& mu, const arma::vec& sigma,
@@ -27,8 +46,6 @@ arma::mat truncnorm_lg(const arma::mat& y_lower, const arma::mat& y_upper,
         // replace 0 with 0.000001 and 1 with 0.999999
         if (F_lower == 0) {
           F_lower = 0.000001;
-        } else if (F_upper == 1) {
-          F_lower = 0.999999;
         }
         if (F_upper == 0) {
           F_upper = 0.000001;
@@ -44,8 +61,6 @@ arma::mat truncnorm_lg(const arma::mat& y_lower, const arma::mat& y_upper,
         // replace 0 with 0.000001 and 1 with 0.999999
         if (F_lower == 0) {
           F_lower = 0.000001;
-        } else if (F_upper == 1) {
-          F_lower = 0.999999;
         }
         if (F_upper == 0) {
           F_upper = 0.000001;
