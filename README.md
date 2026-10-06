@@ -1,17 +1,11 @@
 # glt
 
-**Bayesian factor models with a Generalized Lower Triangular (GLT) process prior**
+**Bayesian Factor Modelling via Generalized Lower Triangular Priors**
 
 ## Overview
 
-The package `glt` implements Bayesian factor models under a **GLT process prior** by Antonio Canale and Sylvia Fruewirth-Shnatter (currently under development). 
-
-
-## Development status 🚧
-
-Last cleaning before pubblication
-
+The package `glt` implements Bayesian factor models under a **GLT process prior** by Antonio Canale and Sylvia Fruewirth-Shnatter. 
 
 ## Author(s)
 
-Antonio Canale (and Posit Assistant)ì
+Antonio Canale
