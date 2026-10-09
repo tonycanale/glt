@@ -1,10 +1,10 @@
 # glt
 
-**Bayesian Factor Modelling via Generalized Lower Triangular Priors**
+**Bayesian Factor Analysis via the Generalized Lower Triangular Process Priors**
 
 ## Overview
 
-The package `glt` implements Bayesian factor models under a **GLT process prior** by Antonio Canale and Sylvia Fruewirth-Shnatter. 
+The package `glt` implements Bayesian factor analysis under the **generalized lower triangular process prior** by [Canale and Frühwirth-Schnatter, (2026)](http://arxiv.org/abs/2610.09762)
 
 Install the R package with 
 
@@ -13,6 +13,6 @@ install.packages("devtools")
 devtools::install_github("tonycanale/glt")
 ```
 
-## Author(s)
+## Author
 
 Antonio Canale
