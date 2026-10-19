@@ -3,9 +3,13 @@ Title: Bayesian Factor Modelling via Generalized Lower Triangular Priors
 Version: 1.0
 Authors@R: 
     person("Antonio", "Canale", , "antonio.canale@unipd.it", role = c("aut", "cre"))
-Description: Fits Bayesian Gaussian factor models under a generalized lower
-    triangular (GLT) process prior using an MCMC sampler implemented in C++
-    via 'Rcpp'.
+Description: Sparse Bayesian factor models for multivariate data, built
+    around a flexible Generalized Lower Triangular (GLT) process prior on
+    the loading matrix by Canale and Frühwirth-Schnatter (2026)
+    <doi:10.48550/arXiv.2610.09762>. The number of active factors, their
+    sparsity pattern, and the loadings themselves are learned jointly via 
+    a Markov chain Monte Carlo sampler implemented in C++ with 'Rcpp' and
+    'RcppArmadillo'.
 License: GPL-2
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

@@ -62,13 +62,26 @@
 #' @references
 #' Canale, A. and Frühwirth-Schnatter, S. (2026).
 #' "The generalized lower triangular process prior."
-#' \emph{Technical Report}, 
+#' \emph{arXiv preprint arXiv:2610.09762}.
 #' 
 #' Kowal, D.  and Canale, A. (2020).
 #' "Simultaneous transformation and rounding (STAR) models for integer-valued data."
 #' \emph{Electronic Journal of Statistics}, 14(1), 1744-1772.
 #' 
 #' @seealso [gltfa()]
+#'
+#' @examples
+#' set.seed(42)
+#' Ycounts <- matrix(rpois(100 * 6, lambda = 3), nrow = 100, ncol = 6)
+#'
+#' fit <- gltfa_star(
+#'   y       = Ycounts,
+#'   Hmax    = 3,
+#'   mcmc    = list(niter = 500, nburn = 250, thin = 1),
+#'   init    = list(H = 1),
+#'   control = list(store_draws = TRUE, seed = 1L),
+#'   verbose = FALSE
+#' )
 #'
 #' @export
 gltfa_star <- function(

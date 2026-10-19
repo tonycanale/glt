@@ -123,7 +123,6 @@ Notation and dimensions:
 }
 }
 \examples{
-\dontrun{
 set.seed(42)
 Y <- matrix(rnorm(200 * 10), nrow = 200, ncol = 10)
 
@@ -136,13 +135,12 @@ fit <- gltfa(
   control = list(store_draws = TRUE, seed = 1L, random_scan = TRUE),
   verbose = FALSE
 )
-}
 
 }
 \references{
 Canale, A. and Frühwirth-Schnatter, S. (2026).
 "The generalized lower triangular process prior."
-\emph{Technical Report},
+\emph{arXiv preprint arXiv:2610.09762}.
 }
 \seealso{
 \code{\link[=get_variance]{get_variance()}}, \code{\link[=get_pivots]{get_pivots()}}, \code{\link[=plot_real_matrix]{plot_real_matrix()}}

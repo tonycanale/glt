@@ -4,7 +4,7 @@
 
 ## Overview
 
-The package `glt` implements Bayesian factor analysis under the **generalized lower triangular process prior** by [Canale and Frühwirth-Schnatter, (2026)](http://arxiv.org/abs/2610.09762)
+The package `glt` implements Bayesian factor analysis under the **generalized lower triangular process prior** by [Canale and Frühwirth-Schnatter, (2026)](https://arxiv.org/abs/2610.09762)
 
 Install the R package with 
 
