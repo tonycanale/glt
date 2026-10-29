@@ -8,11 +8,17 @@ The package `glt` implements sparse Bayesian factor analysis under the **general
 
 The number of active factors, their sparsity pattern, and the loadings themselves are learned jointly via a Markov chain Monte Carlo sampler implemented in C++ with `Rcpp` and `RcppArmadillo`.
 
-Install the R package with 
+Install the lastet version of the package with 
 
 ```R
 install.packages("devtools")
 devtools::install_github("tonycanale/glt")
+```
+
+Alternatively, download the [CRAN version](https://cran.r-project.org/web/packages/glt/index.html) version with
+
+```R
+install.packages("glt")
 ```
 
 ## Author
